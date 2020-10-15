@@ -8,6 +8,11 @@ import org.observe.util.Identified;
 import org.observe.util.NamedEntity;
 
 public interface Job extends Identified, NamedEntity {
+	/**
+	 * Renamed "Points" in the app
+	 * 
+	 * @return The number of points the job is worth
+	 */
 	int getDifficulty();
 	Job setDifficulty(int difficulty);
 
@@ -24,9 +29,6 @@ public interface Job extends Identified, NamedEntity {
 
 	boolean isActive();
 	Job setActive(boolean active);
-
-	int getMultiplicity();
-	Job setMultiplicity(int multiplicity);
 
 	ObservableCollection<String> getInclusionLabels();
 	ObservableCollection<String> getExclusionLabels();

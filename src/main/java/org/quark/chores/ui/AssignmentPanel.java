@@ -60,20 +60,22 @@ public class AssignmentPanel extends JPanel {
 							deco.withLineBorder(borderColor, 2, false);
 						});
 					})//
-					.withColumn("Difficulty", int.class, entry -> entry.getValue().getJob().getDifficulty(), null)//
-					.withColumn("Complete", int.class, entry -> entry.getValue().getCompletion(), col -> col.withMutation(mut -> {
-						mut.mutateAttribute((entry, complete) -> entry.getValue().setCompletion(complete))//
-								.filterAccept((entry, completion) -> {
-									if (completion < 0) {
-										return "Completion cannot be negative";
-									} else if (completion > entry.get().getValue().getJob().getDifficulty()) {
-										return "Max completion is the difficulty of the job ("
-												+ entry.get().getValue().getJob().getDifficulty() + ")";
-									} else {
-										return null;
-									}
-								}).withRowUpdate(true).asText(SpinnerFormat.INT).clicks(1);
-					}))//
+					.withColumn("Points", int.class, entry -> entry.getValue().getJob().getDifficulty(),
+							col -> col.withHeaderTooltip("The number of points the job is worth"))//
+					.withColumn("Complete", int.class, entry -> entry.getValue().getCompletion(),
+							col -> col.withHeaderTooltip("The amount of the job that is complete").withMutation(mut -> {
+								mut.mutateAttribute((entry, complete) -> entry.getValue().setCompletion(complete))//
+										.filterAccept((entry, completion) -> {
+											if (completion < 0) {
+												return "Completion cannot be negative";
+											} else if (completion > entry.get().getValue().getJob().getDifficulty()) {
+												return "Max completion is the difficulty of the job ("
+														+ entry.get().getValue().getJob().getDifficulty() + ")";
+											} else {
+												return null;
+											}
+										}).withRowUpdate(true).asText(SpinnerFormat.INT).clicks(1);
+							}))//
 					.withRemove(entries -> {
 						List<AssignedJob> jobs = QommonsUtils.map(entries, entry -> entry.getValue(), false);
 						theUI.getSelectedAssignment().get().getAssignments().getValues().removeAll(jobs);
@@ -112,31 +114,11 @@ public class AssignmentPanel extends JPanel {
 		panel.addComboField(null, selectedWorker, theUI.getWorkers().getValues(),
 				combo -> combo.renderAs(w -> w == null ? "Select Worker" : w.getName()));
 		panel.addComboField(null, addJob, availableJobs,
-				combo -> combo.renderWith(ObservableCellRenderer.<Job, Job> formatted(job -> job == null ? "Select New Job" : job.getName())//
-						.decorate((cell, deco) -> {
-							if (cell.getModelValue() == null) {
-								return;
-							}
-							Instant lastDone = cell.getModelValue().getLastDone();
-							if (lastDone == null) {
-								deco.withForeground(Color.black);
-							} else {
-								Instant due = lastDone.plus(cell.getModelValue().getFrequency());
-								if (due.compareTo(Instant.now()) <= 0) {
-									deco.withForeground(Color.black);
-								} else {
-									deco.withForeground(Color.gray);
-								}
-							}
-						}))//
-						.withValueTooltip(job -> {
-							Instant lastDone = job.getLastDone();
-							if (lastDone == null) {
-								return "Never done";
-							}
-							Instant due = lastDone.plus(job.getFrequency());
-							return "Due " + ChoreUtils.DATE_FORMAT.format(due);
-						}))//
+				combo -> combo
+						.renderWith(ObservableCellRenderer.<Job, Job> formatted(job -> job == null ? "Select New Job" : job.getName())//
+								.decorate((cell, deco) -> ChoreUtils.decoratePotentialJobCell(cell.getModelValue(), deco,
+										selectedWorker.get())))//
+						.withValueTooltip(job -> ChoreUtils.getPotentialJobTooltip(job, selectedWorker.get())))//
 		;
 		addJob.noInitChanges().act(evt -> {
 			if (evt.getNewValue() == null) {
@@ -234,7 +216,7 @@ public class AssignmentPanel extends JPanel {
 			} else if (needsDone2) {
 				return 1;
 			}
-			int comp = Integer.compare(job1.getPriority(), job2.getPriority());
+			int comp = -Integer.compare(job1.getPriority(), job2.getPriority()); // Higher priority first
 			if (comp == 0) {
 				comp = todo1.compareTo(todo2);
 			}
@@ -335,8 +317,15 @@ public class AssignmentPanel extends JPanel {
 				return false;
 			}
 		}
-		for (String label : job.getInclusionLabels()) {
-			if (!worker.getLabels().contains(label)) {
+		if (!job.getInclusionLabels().isEmpty()) {
+			boolean included = false;
+			for (String label : worker.getLabels()) {
+				included = job.getInclusionLabels().contains(label);
+				if (included) {
+					break;
+				}
+			}
+			if (!included) {
 				return false;
 			}
 		}

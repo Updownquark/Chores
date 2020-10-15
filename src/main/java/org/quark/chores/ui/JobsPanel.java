@@ -24,28 +24,33 @@ public class JobsPanel extends JPanel {
 						.withFormat(Format.doubleFormat("0.0#"), () -> .3).buildValue(null))//
 				.firstV(top -> top.addTable(theUI.getJobs().getValues(), table -> {
 					table.fill().fillV().withNameColumn(Job::getName, Job::setName, true, col -> col.withWidths(50, 150, 250))//
-							.withColumn("Difficulty", int.class, Job::getDifficulty,
+							.withColumn("Points", int.class, Job::getDifficulty,
 									col -> col.withMutation(mut -> mut.mutateAttribute(Job::setDifficulty).asText(SpinnerFormat.INT)))//
 							.withColumn("Min Level", int.class, Job::getMinLevel,
-									col -> col.withMutation(mut -> mut.mutateAttribute(Job::setMinLevel).asText(SpinnerFormat.INT)))//
+									col -> col.withHeaderTooltip("The minimum level of worker that this job may be assigned to")//
+											.withMutation(mut -> mut.mutateAttribute(Job::setMinLevel).asText(SpinnerFormat.INT)))//
 							.withColumn("Max Level", int.class, Job::getMaxLevel,
-									col -> col.withMutation(mut -> mut.mutateAttribute(Job::setMaxLevel).asText(SpinnerFormat.INT)))//
+									col -> col.withHeaderTooltip("The maximum level of worker that this job may be assigned to")//
+											.withMutation(mut -> mut.mutateAttribute(Job::setMaxLevel).asText(SpinnerFormat.INT)))//
 							.withColumn("Frequency", Duration.class, Job::getFrequency,
-									col -> col.withMutation(
+									col -> col.withHeaderTooltip("How often this job should be done").withMutation(
 											mut -> mut.mutateAttribute(Job::setFrequency).asText(SpinnerFormat.flexDuration(true))))//
 							.withColumn("Priority", int.class, Job::getPriority,
-									col -> col.withMutation(mut -> mut.mutateAttribute(Job::setPriority).asText(SpinnerFormat.INT)))//
+									col -> col.withHeaderTooltip("The priority this job should take over other jobs")//
+											.withMutation(mut -> mut.mutateAttribute(Job::setPriority).asText(SpinnerFormat.INT)))//
 							.withColumn("Active", boolean.class, Job::isActive,
-									col -> col.withMutation(mut -> mut.mutateAttribute(Job::setActive).asCheck()).withWidths(25, 60, 80))//
-							// Haven't done anything with this, so let's just hide it
-							// .withColumn("Multi", int.class, Job::getMultiplicity,
-							// col -> col.withMutation(mut -> mut.mutateAttribute(Job::setMultiplicity).asText(SpinnerFormat.INT)))//
+									col -> col.withHeaderTooltip("Whether this job is available for automatic assignment")//
+											.withMutation(mut -> mut.mutateAttribute(Job::setActive).asCheck()).withWidths(25, 60, 80))//
 							.withColumn("Last Done", Instant.class, Job::getLastDone,
-									col -> col.withWidths(60, 120, 200).formatText(ChoreUtils.DATE_FORMAT::format)
+									col -> col.withHeaderTooltip("The data of the assignment during which this chore was last completed")//
+											.withWidths(60, 120, 200).formatText(ChoreUtils.DATE_FORMAT::format)
 											.withMutation(mut -> mut.mutateAttribute(Job::setLastDone).asText(//
 													ChoreUtils.DATE_FORMAT)))//
 							.withColumn("Inclusion Labels", ChoreUtils.LABEL_SET_TYPE, Job::getInclusionLabels,
-									col -> col.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
+									col -> col
+											.withHeaderTooltip(
+													"If given, a worker MUST be assigned one of these labels in order to be assigned the job")
+											.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
 											.withMutation(mut -> mut.mutateAttribute((job, labels) -> {
 												job.getInclusionLabels().retainAll(labels);
 												job.getInclusionLabels().addAll(labels);
@@ -56,7 +61,10 @@ public class JobsPanel extends JPanel {
 												return null;
 											}).asText(ChoreUtils.LABEL_SET_FORMAT)))//
 							.withColumn("Exclusion Labels", ChoreUtils.LABEL_SET_TYPE, Job::getExclusionLabels,
-									col -> col.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
+									col -> col
+											.withHeaderTooltip(
+													"If given, a worker CANNOT be assigned one of these labels in order to be assigned the job")
+											.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
 											.withMutation(mut -> mut.mutateAttribute((job, labels) -> {
 												job.getExclusionLabels().retainAll(labels);
 												job.getExclusionLabels().addAll(labels);
@@ -76,13 +84,11 @@ public class JobsPanel extends JPanel {
 										.with(Job::getPriority, 5)//
 										.with(Job::getDifficulty, 1)//
 										.with(Job::getMaxLevel, 100)//
-										.with(Job::getMultiplicity, 1)//
 										.create().get();
 							}, null)//
 							.withRemove(null, action -> action.confirmForItems("Remove jobs?", "Permanently delete ", "?", true));
 				}))//
 				.lastV(bottom -> bottom.visibleWhen(theUI.getSelectedJob().map(j -> j != null))//
 		));
-
 	}
 }

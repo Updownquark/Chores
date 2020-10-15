@@ -2,7 +2,6 @@ package org.quark.chores.ui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
-import java.time.Instant;
 
 import javax.swing.JPanel;
 
@@ -35,18 +34,20 @@ public class WorkersPanel extends JPanel {
 							table.fill().dragSourceRow(null).dragAcceptRow(null)// Re-orderable by drag
 									.withNameColumn(Worker::getName, Worker::setName, true, null)//
 									.withColumn("Level", int.class, Worker::getLevel,
-											col -> col.withMutation(mut -> mut.mutateAttribute(Worker::setLevel).asText(SpinnerFormat.INT)))//
+											col -> col.withHeaderTooltip("Affects the type of jobs a worker may be assigned")//
+													.withMutation(mut -> mut.mutateAttribute(Worker::setLevel).asText(SpinnerFormat.INT)))//
 									.withColumn("Ability", int.class, Worker::getAbility,
-											col -> col
+											col -> col.withHeaderTooltip("The amount of work expected of the worker")
 													.withMutation(mut -> mut.mutateAttribute(Worker::setAbility).asText(SpinnerFormat.INT)))//
 									.withColumn("Labels", ChoreUtils.LABEL_SET_TYPE, Worker::getLabels, col -> {
-										col.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
+										col.withHeaderTooltip("Labels that affect which jobs may apply to the worker")
+												.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
 												.withMutation(mut -> mut.mutateAttribute((worker, labels) -> {
 													worker.getLabels().retainAll(labels);
 													worker.getLabels().addAll(labels);
 												}).filterAccept((workerEl, label) -> {
 													if (workerEl.get().getLabels().contains(label)) {
-														return label + " is already included";
+														return workerEl.get().getName() + " is already labeled " + label;
 													}
 													return null;
 												}).asText(ChoreUtils.LABEL_SET_FORMAT));
@@ -102,30 +103,10 @@ public class WorkersPanel extends JPanel {
 												.addComboField("Add Assignment:", addJob, availableJobs,
 														combo -> combo.renderWith(ObservableCellRenderer
 																.<Job, Job> formatted(job -> job == null ? "Select New Job" : job.getName())//
-																.decorate((cell, deco) -> {
-																	if (cell.getModelValue() == null) {
-																		return;
-																	}
-																	Instant lastDone = cell.getModelValue().getLastDone();
-																	if (lastDone == null) {
-																		deco.withForeground(Color.black);
-																	} else {
-																		Instant due = lastDone.plus(cell.getModelValue().getFrequency());
-																		if (due.compareTo(Instant.now()) <= 0) {
-																			deco.withForeground(Color.black);
-																		} else {
-																			deco.withForeground(Color.gray);
-																		}
-																	}
-																}))//
-																.withValueTooltip(job -> {
-																	Instant lastDone = job.getLastDone();
-																	if (lastDone == null) {
-																		return "Never done";
-																	}
-																	Instant due = lastDone.plus(job.getFrequency());
-																	return "Due " + ChoreUtils.DATE_FORMAT.format(due);
-																}))//
+																.decorate((cell, deco) -> ChoreUtils.decoratePotentialJobCell(
+																		cell.getModelValue(), deco, theUI.getSelectedWorker().get())))//
+																.withValueTooltip(job -> ChoreUtils.getPotentialJobTooltip(job,
+																		theUI.getSelectedWorker().get())))//
 						));
 		addJob.noInitChanges().act(evt -> {
 			if (evt.getNewValue() == null) {
