@@ -142,6 +142,7 @@ public class ChoresUI extends JPanel {
 					str.append("</li><li>Click \"Submit new issue\"</li></ol>");
 				})
 				.withIcon(ChoresUI.class, "/icons/broom.jpg")//
+				.withConfigInit(ChoresUI.class, "/config/InitialConfig.xml")//
 				.withTitle("Chore Motivator").systemLandF().build(config -> {
 					ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
 					SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");

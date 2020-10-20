@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<chores-config selected-tab="jobs" >
+	<workers>
+	</workers>
+	<jobs>
+		<job difficulty="3" multiplicity="1" name="Clean Living Room" frequency="1d" id="1" min-level="2" max-level="100" active="true" last-done="03102020 19:44:12.159" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="3" multiplicity="1" name="Clean Around The House" frequency="1d" id="2" min-level="2" max-level="100" active="true" last-done="10102020 13:32:43.386" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="10" multiplicity="1" name="Master Bath" frequency="7d" id="3" min-level="5" max-level="100" active="true" last-done="10102020 13:32:43.386" priority="5">
+			<exclusion-labels />
+			<inclusion-labels>
+				<inclusion-label>Boys</inclusion-label>
+			</inclusion-labels>
+		</job>
+		<job difficulty="10" multiplicity="1" name="Main Bath" frequency="7d" id="4" min-level="5" max-level="100" active="true" last-done="10102020 13:32:43.386" priority="5">
+			<exclusion-labels />
+			<inclusion-labels>
+				<inclusion-label>Boys</inclusion-label>
+			</inclusion-labels>
+		</job>
+		<job difficulty="7" multiplicity="2" name="Laundry" frequency="7d" id="5" min-level="6" max-level="100" active="true" last-done="10102020 13:32:43.386" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="5" multiplicity="1" name="Trash" frequency="7d" id="6" min-level="6" max-level="100" active="true" last-done="10102020 13:32:43.386" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="15" multiplicity="1" name="Mow the Lawn" frequency="21d" id="8" min-level="7" max-level="100" active="false" last-done="03102020 19:44:12.159" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="2" multiplicity="1" name="Water the Plants" frequency="2d" id="9" min-level="3" max-level="100" active="true" last-done="10102020 13:32:43.386" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="7" multiplicity="1" name="Sweep the Porch" frequency="28d" id="10" min-level="6" max-level="100" active="true" last-done="28092020 19:14:25.710" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="5" multiplicity="1" name="Vacuum Living Room" frequency="14d" id="11" min-level="5" max-level="100" active="true" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="8" multiplicity="1" name="Mop Kitchen" frequency="14d" id="12" min-level="6" max-level="100" active="true" last-done="10102020 13:32:43.386" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="10" multiplicity="1" name="Mop Entry, &amp; Hall" frequency="14d" id="13" min-level="6" max-level="100" active="true" last-done="03102020 19:44:12.159" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="10" multiplicity="1" name="Mop Bathrooms" frequency="14d" id="14" min-level="6" max-level="100" active="true" last-done="28092020 19:14:25.710" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job difficulty="10" multiplicity="1" name="Vacuum Bedrooms" frequency="56d" id="15" min-level="5" max-level="100" active="true" priority="5">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job active="true" difficulty="5" max-level="100" multiplicity="1" name="Empty Dishwasher" priority="5" frequency="1d" id="16" min-level="7" last-done="10102020 13:32:43.386">
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job active="true" difficulty="6" max-level="100" multiplicity="1" name="Clean Counters" priority="5" frequency="1w" id="17" min-level="6">17
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+		<job active="true" difficulty="2" max-level="100" multiplicity="1" name="Wash Tables" priority="5" frequency="1d" id="19" min-level="4">19
+			<exclusion-labels />
+			<inclusion-labels />
+		</job>
+	</jobs>
+	<assignments>
+	</assignments>
+</chores-config>
