@@ -23,7 +23,8 @@ public class JobsPanel extends JPanel {
 				.withSplitProportion(theUI.getConfig().asValue(double.class).at("jobs-split")
 						.withFormat(Format.doubleFormat("0.0#"), () -> .3).buildValue(null))//
 				.firstV(top -> top.addTable(theUI.getJobs().getValues(), table -> {
-					table.fill().fillV().withNameColumn(Job::getName, Job::setName, true, col -> col.withWidths(50, 150, 250))//
+					table.fill().fillV().dragSourceRow(null).dragAcceptRow(null)// Drag reordering
+							.withNameColumn(Job::getName, Job::setName, true, col -> col.withWidths(50, 150, 250))//
 							.withColumn("Points", int.class, Job::getDifficulty,
 									col -> col.withMutation(mut -> mut.mutateAttribute(Job::setDifficulty).asText(SpinnerFormat.INT)))//
 							.withColumn("Min Level", int.class, Job::getMinLevel,
