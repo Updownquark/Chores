@@ -130,6 +130,15 @@ public class ChoresUI extends JPanel {
 	public static void main(String[] args) {
 		ObservableSwingUtils.buildUI()//
 				.withConfig("chores-config").withConfigAt("Chores.xml")//
+				.enableCloseWithoutSave()//
+				.withErrorReporting("https://github.com/Updownquark/Chores/issues/new", (str, error) -> {
+					if (error) {
+						str.append("<ol><li>Describe your issue, what you did to produce it, what effects it had, etc.</li>");
+					} else {
+						str.append("<ol><li>Describe your issue or feature idea");
+					}
+					str.append("</li><li>Click \"Submit new issue\"</li></ol>");
+				})
 				.withTitle("Chore Helper").systemLandF().build(config -> {
 					ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
 					SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");
@@ -145,7 +154,7 @@ public class ChoresUI extends JPanel {
 
 	private static SyncValueSet<Worker> getWorkers(ObservableConfig config, ObservableConfigFormatSet formats, String path,
 			SyncValueSet<Job> jobs) {
-		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(fv -> jobs.getValues(), null)//
+		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(jobs.getValues(), null)//
 				.withField("id", Job::getId, ObservableConfigFormat.LONG).build();
 		return config.asValue(Worker.class).withFormatSet(formats).asEntity(workerConfig -> {
 			workerConfig.withFieldFormat(Worker::getJobPreferences, ObservableConfigFormat.ofMap(jobs.getValues().getType(),
@@ -155,7 +164,7 @@ public class ChoresUI extends JPanel {
 
 	private static SyncValueSet<Assignment> getAssignments(ObservableConfig config, ObservableConfigFormatSet formats, String path,
 			SyncValueSet<Job> jobs, SyncValueSet<Worker> workers) {
-		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(fv -> jobs.getValues(), null)//
+		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(jobs.getValues(), null)//
 				.withField("id", Job::getId, ObservableConfigFormat.LONG).build();
 		ObservableConfigFormat<Worker> workerRefFormat = ObservableConfigFormat
 				.<Worker> buildReferenceFormat(fv -> workers.getValues(), null)//
