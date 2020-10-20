@@ -13,14 +13,12 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 import org.observe.SettableValue;
-import org.observe.assoc.ObservableMultiMap;
 import org.observe.collect.ObservableCollection;
 import org.observe.util.TypeTokens;
 import org.observe.util.swing.JustifiedBoxLayout;
 import org.observe.util.swing.ObservableCellRenderer;
 import org.observe.util.swing.PanelPopulation.PanelPopulator;
 import org.qommons.BiTuple;
-import org.qommons.QommonsUtils;
 import org.qommons.io.SpinnerFormat;
 import org.quark.chores.entities.AssignedJob;
 import org.quark.chores.entities.Assignment;
@@ -35,24 +33,31 @@ public class AssignmentPanel extends JPanel {
 	}
 
 	public void addPanel(PanelPopulator<?, ?> panel) {
-		ObservableMultiMap<Worker, AssignedJob> assignmentsByWorker = ObservableCollection
-				.flattenValue(//
-						theUI.getSelectedAssignment().<ObservableCollection<AssignedJob>> transform(//
-								TypeTokens.get().keyFor(ObservableCollection.class).parameterized(AssignedJob.class), //
-								tx -> tx.nullToNull(true).map(asn -> asn.getAssignments().getValues())))//
-				.flow().groupBy(TypeTokens.get().of(Worker.class), AssignedJob::getWorker, null).gather();
+		ObservableCollection<AssignedJob> jobs = ObservableCollection.flattenValue(
+				theUI.getSelectedAssignment().map(assn -> assn == null ? null : assn.getAssignments().getValues()))//
+				.flow().sorted((assn1, assn2) -> {
+					int index1 = theUI.getWorkers().getValues().indexOf(assn1.getWorker());
+					int index2 = theUI.getWorkers().getValues().indexOf(assn2.getWorker());
+					int comp = Integer.compare(index1, index2);
+					if (comp == 0) {
+						index1 = theUI.getJobs().getValues().indexOf(assn1.getJob());
+						index2 = theUI.getJobs().getValues().indexOf(assn2.getJob());
+						comp = Integer.compare(index1, index2);
+					}
+					return comp;
+				}).collect();
 		panel.addLabel("Assignment Date:", theUI.getSelectedAssignment().transform(TypeTokens.get().of(Instant.class),
 				tx -> tx.nullToNull(true).map(asn -> asn.getDate())), ChoreUtils.DATE_FORMAT, null);
-		panel.addTable(assignmentsByWorker.observeSingleEntries(), table -> {
+		panel.addTable(jobs, table -> {
 			table.fill().fillV()//
 					.withItemName("Assignment")//
-					.withColumn("Worker", String.class, entry -> entry.getKey().getName(), null)//
-					.withColumn("Job", String.class, entry -> entry.getValue().getJob().getName(), col -> {
+					.withColumn("Worker", String.class, assn -> assn.getWorker().getName(), null)//
+					.withColumn("Job", String.class, assn -> assn.getJob().getName(), col -> {
 						col.withWidths(50, 150, 250).decorate((cell, deco) -> {
 							Color borderColor;
-							if (cell.getModelValue().get().getCompletion() == 0) {
+							if (cell.getModelValue().getCompletion() == 0) {
 								borderColor = Color.red;
-							} else if (cell.getModelValue().get().getCompletion() < cell.getModelValue().get().getJob().getDifficulty()) {
+							} else if (cell.getModelValue().getCompletion() < cell.getModelValue().getJob().getDifficulty()) {
 								borderColor = Color.yellow;
 							} else {
 								borderColor = Color.green;
@@ -60,25 +65,24 @@ public class AssignmentPanel extends JPanel {
 							deco.withLineBorder(borderColor, 2, false);
 						});
 					})//
-					.withColumn("Points", int.class, entry -> entry.getValue().getJob().getDifficulty(),
+					.withColumn("Points", int.class, entry -> entry.getJob().getDifficulty(),
 							col -> col.withHeaderTooltip("The number of points the job is worth"))//
-					.withColumn("Complete", int.class, entry -> entry.getValue().getCompletion(),
+					.withColumn("Complete", int.class, entry -> entry.getCompletion(),
 							col -> col.withHeaderTooltip("The amount of the job that is complete").withMutation(mut -> {
-								mut.mutateAttribute((entry, complete) -> entry.getValue().setCompletion(complete))//
+								mut.mutateAttribute((entry, complete) -> entry.setCompletion(complete))//
 										.filterAccept((entry, completion) -> {
 											if (completion < 0) {
 												return "Completion cannot be negative";
-											} else if (completion > entry.get().getValue().getJob().getDifficulty()) {
+											} else if (completion > entry.get().getJob().getDifficulty()) {
 												return "Max completion is the difficulty of the job ("
-														+ entry.get().getValue().getJob().getDifficulty() + ")";
+														+ entry.get().getJob().getDifficulty() + ")";
 											} else {
 												return null;
 											}
 										}).withRowUpdate(true).asText(SpinnerFormat.INT).clicks(1);
 							}))//
-					.withRemove(entries -> {
-						List<AssignedJob> jobs = QommonsUtils.map(entries, entry -> entry.getValue(), false);
-						theUI.getSelectedAssignment().get().getAssignments().getValues().removeAll(jobs);
+					.withRemove(toRemove -> {
+						theUI.getSelectedAssignment().get().getAssignments().getValues().removeAll(toRemove);
 					}, removeAction -> {
 						removeAction.confirmForItems("Delete Assignment(s)?", "Are you sure you want to delete ", "?", true);
 					})//
