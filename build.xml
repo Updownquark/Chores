@@ -4,14 +4,14 @@
     <!--ANT 1.7 is required                                        -->
     <!--define folder properties-->
     <property name="dir.buildfile" value="."/>
-    <property name="dir.workspace" value="../.."/>
+    <property name="dir.workspace" value=".."/>
     <property name="dir.jarfile" value="${dir.buildfile}"/>
     <target name="create_run_jar">
-        <jar destfile="${dir.jarfile}/Chores.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="${dir.jarfile}/ChoreMotivator.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="org.quark.chores.ui.ChoresUI"/>
                 <attribute name="Class-Path" value="."/>
-            	<!--<attribute name="SplashScreen-Image" value="??.png"/>-->
+            	<attribute name="SplashScreen-Image" value="icons/sisyphus.gif"/>
             </manifest>
             <fileset dir="${dir.jarfile}/target/classes"/>
             <fileset dir="${dir.workspace}/ObServe/classes"/>
