@@ -129,8 +129,9 @@ public class ChoresUI extends JPanel {
 
 	public static void main(String[] args) {
 		ObservableSwingUtils.buildUI()//
+				.withConfig("chores-config").withConfigAt("Chores.xml")//
 				// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
-				.withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
+				// .withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
 				.enableCloseWithoutSave()//
 				.withErrorReporting("https://github.com/Updownquark/Chores/issues/new", (str, error) -> {
 					if (error) {
