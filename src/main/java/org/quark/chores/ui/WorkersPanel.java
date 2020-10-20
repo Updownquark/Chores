@@ -68,7 +68,7 @@ public class WorkersPanel extends JPanel {
 									.withRemove(null,
 											action -> action.confirmForItems("Remove workers?", "Permanently delete ", "?", true));
 						}))//
-						.lastV(this::populateWorkerEditor));
+						.lastV(bottom -> bottom.addVPanel(p -> populateWorkerEditor(p.fill().fillV()))));
 	}
 
 	void populateWorkerEditor(PanelPopulator<?, ?> bottom) {
