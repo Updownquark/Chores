@@ -129,7 +129,8 @@ public class ChoresUI extends JPanel {
 
 	public static void main(String[] args) {
 		ObservableSwingUtils.buildUI()//
-				.withConfig("chores-config").withConfigAt("Chores.xml")//
+				// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
+				.withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
 				.enableCloseWithoutSave()//
 				.withErrorReporting("https://github.com/Updownquark/Chores/issues/new", (str, error) -> {
 					if (error) {
@@ -139,7 +140,8 @@ public class ChoresUI extends JPanel {
 					}
 					str.append("</li><li>Click \"Submit new issue\"</li></ol>");
 				})
-				.withTitle("Chore Helper").systemLandF().build(config -> {
+				.withIcon(ChoresUI.class, "/icons/broom.jpg")//
+				.withTitle("Chore Motivator").systemLandF().build(config -> {
 					ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
 					SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");
 					SyncValueSet<Worker> workers = getWorkers(config, formats, "workers/worker", jobs);
