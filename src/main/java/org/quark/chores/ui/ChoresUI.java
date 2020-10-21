@@ -1,5 +1,6 @@
 package org.quark.chores.ui;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -9,8 +10,11 @@ import org.observe.config.ObservableConfig;
 import org.observe.config.ObservableConfigFormat;
 import org.observe.config.ObservableConfigFormatSet;
 import org.observe.config.SyncValueSet;
+import org.observe.ext.util.GitHubApiHelper;
+import org.observe.ext.util.GitHubApiHelper.Release;
 import org.observe.util.TypeTokens;
 import org.observe.util.swing.ObservableSwingUtils;
+import org.observe.util.swing.ObservableSwingUtils.ObservableUiBuilder;
 import org.observe.util.swing.PanelPopulation;
 import org.qommons.io.Format;
 import org.quark.chores.entities.AssignedJob;
@@ -128,7 +132,8 @@ public class ChoresUI extends JPanel {
 	}
 
 	public static void main(String[] args) {
-		ObservableSwingUtils.buildUI()//
+		ObservableUiBuilder builder = ObservableSwingUtils.buildUI();
+		builder
 				.withConfig("chores-config").withConfigAt("Chores.xml")//
 				// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
 				// .withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
@@ -143,12 +148,41 @@ public class ChoresUI extends JPanel {
 				})
 				.withIcon(ChoresUI.class, "/icons/broom.jpg")//
 				.withConfigInit(ChoresUI.class, "/config/InitialConfig.xml")//
-				.withTitle("Chore Motivator").systemLandF().build(config -> {
-					ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
-					SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");
-					SyncValueSet<Worker> workers = getWorkers(config, formats, "workers/worker", jobs);
-					SyncValueSet<Assignment> assignments = getAssignments(config, formats, "assignments/assignment", jobs, workers);
-					return new ChoresUI(jobs, workers, assignments, config);
+				.withAbout(ChoresUI.class, () -> {
+					Release r;
+					try {
+						r = new GitHubApiHelper("Updownquark", "Chores").getLatestRelease(ChoresUI.class);
+					} catch (IOException e) {
+						e.printStackTrace(System.out);
+						return null;
+					}
+					return r == null ? null : r.getTagName();
+				}, () -> {
+					try {
+						new GitHubApiHelper("Updownquark", "Chores").upgradeToLatest(ChoresUI.class, builder.getTitle().get(),
+								builder.getIcon().get());
+					} catch (IllegalStateException | IOException e) {
+						e.printStackTrace(System.out);
+					}
+				})
+				.withTitle("Chore Motivator").systemLandF().build((config, onBuilt) -> {
+					try {
+						new GitHubApiHelper("Updownquark", "Chores").checkForNewVersion(ChoresUI.class, builder.getTitle().get(),
+								builder.getIcon().get(), release -> {
+									String declinedRelease = config.get("declined-release");
+									return !release.getTagName().equals(declinedRelease);
+								}, release -> config.set("declined-release", release.getTagName()), () -> {
+									ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
+									SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");
+									SyncValueSet<Worker> workers = getWorkers(config, formats, "workers/worker", jobs);
+									SyncValueSet<Assignment> assignments = getAssignments(config, formats, "assignments/assignment", jobs,
+											workers);
+									onBuilt.accept(new ChoresUI(jobs, workers, assignments, config));
+								});
+					} catch (IOException e) {
+						// Put this on System.out so we don't trigger the bug warning
+						e.printStackTrace(System.out);
+					}
 				});
 	}
 
