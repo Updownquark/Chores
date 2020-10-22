@@ -1,28 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="Create Runnable Jar for Project Chores">
+<project default="jar" name="Create Runnable Jar for Project Chores">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <!--define folder properties-->
 	<property name="app.name" value="Chore Motivator" />
-	<property name="app.version" value="0.0.4" />
+	<property name="app.short.name" value="ChoreMotivator" />
+	<property name="app.vendor" value="Updownquark" />
+	<property name="app.version" value="0.0.5" />
+	<property name="app.descrip" value="An app for tracking chore assignments" />
+	<property name="main.class" value="org.quark.chores.ui.ChoresUI"/>
+
     <property name="dir.buildfile" value="."/>
     <property name="dir.workspace" value=".."/>
-    <property name="dir.jarfile" value="${dir.buildfile}"/>
-    <target name="create_run_jar">
-        <jar destfile="${dir.jarfile}/ChoreMotivator.jar" filesetmanifest="mergewithoutmain">
+    <property name="dir.jarfile" value="${dir.buildfile}/target/deploy"/>
+	<property name="jar.file" value="${dir.jarfile}/${app.short.name}.jar" />
+	<property environment="env" />
+	<!--<property name="java_home" value="${env.JAVA_HOME}" />-->
+	<property name="java_home" value="C:\Program Files\Java\jdk1.8.0_181" />
+	<property name="packager" value="${java_home}/bin/javapackager.exe" />
+    <target name="jar">
+        <jar destfile="${jar.file}" filesetmanifest="mergewithoutmain">
             <manifest>
-                <attribute name="Main-Class" value="org.quark.chores.ui.ChoresUI"/>
+                <attribute name="Main-Class" value="${main.class}"/>
                 <attribute name="Class-Path" value="."/>
             	<attribute name="SplashScreen-Image" value="icons/sisyphus.gif"/>
             	<section name="org/quark/chores/ui/">
 	            	<attribute name="Specification-Title" value="${app.name}" />
             		<attribute name="Specification-Version" value="0.0.0" />
-            		<attribute name="Specification-Vendor" value="Updownquark" />
+            		<attribute name="Specification-Vendor" value="${app.vendor}" />
             		<attribute name="Implementation-Title" value="org.quark.chores.ui" />
             		<attribute name="Implementation-Version" value="${app.version}" />
             	</section>
             </manifest>
-            <fileset dir="${dir.jarfile}/target/classes"/>
+            <fileset dir="${dir.buildfile}/target/classes"/>
             <fileset dir="${dir.workspace}/ObServe/classes"/>
             <fileset dir="${dir.workspace}/ObServe-ext/target/classes"/>
             <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/ObServe/lib/guava-18.0.jar"/>
@@ -33,4 +43,30 @@
             <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/ObServe/lib/swingx-1.6.jar"/>
         </jar>
     </target>
+	<target name="deploy-exe" depends="jar">
+		<copy todir="target/native/exe">
+			<fileset dir="${dir.jarfile}">
+				<include name="${app.short.name}.jar" />
+			</fileset>
+		</copy>
+	</target>
+	<!--<target name="exe"
+		depends="jar"
+		>
+		<exec executable="${packager}">
+			<arg value="-deploy" />
+			<arg line="-native exe" />
+			<arg line="-outdir ${dir.buildfile}/target/native" />
+			<arg line="-outfile ${app.short.name}" />
+			<arg line="-title &quot;${app.name}&quot;" />
+			<arg line="-description &quot;${app.descrip}&quot;" />
+			<arg line="-srcfiles ${jar.file}" />
+			<arg line="-appclass ${main.class}" />
+			<arg line="-name &quot;${app.name}&quot;" />
+			<arg value="-Bmainjar=${jar.file}" />
+			<arg value="-BappVersion=${app.version}" />
+			<arg value="-Bvendor=${app.vendor}" />
+			<arg value="-Bicon=icons/broom.ico" />
+		</exec>
+	</target>-->
 </project>
