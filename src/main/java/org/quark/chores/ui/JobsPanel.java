@@ -3,15 +3,13 @@ package org.quark.chores.ui;
 import java.time.Duration;
 import java.time.Instant;
 
-import javax.swing.JPanel;
-
 import org.observe.util.swing.PanelPopulation.PanelPopulator;
 import org.qommons.StringUtils;
 import org.qommons.io.Format;
 import org.qommons.io.SpinnerFormat;
 import org.quark.chores.entities.Job;
 
-public class JobsPanel extends JPanel {
+public class JobsPanel {
 	private final ChoresUI theUI;
 
 	public JobsPanel(ChoresUI ui) {

@@ -2,6 +2,7 @@ package org.quark.chores.entities;
 
 import org.observe.assoc.ObservableMap;
 import org.observe.collect.ObservableCollection;
+import org.observe.config.SyncValueSet;
 import org.observe.util.Identified;
 import org.observe.util.NamedEntity;
 
@@ -18,4 +19,6 @@ public interface Worker extends Identified, NamedEntity {
 	ObservableCollection<String> getLabels();
 
 	ObservableMap<Job, Integer> getJobPreferences();
+
+	SyncValueSet<PointHistory> getPointHistory();
 }

@@ -21,31 +21,38 @@ import org.qommons.io.Format;
 import org.quark.chores.entities.AssignedJob;
 import org.quark.chores.entities.Assignment;
 import org.quark.chores.entities.Job;
+import org.quark.chores.entities.PointResource;
 import org.quark.chores.entities.Worker;
 
 public class ChoresUI extends JPanel {
 	private final SyncValueSet<Job> theJobs;
 	private final SyncValueSet<Worker> theWorkers;
 	private final SyncValueSet<Assignment> theAssignments;
+	private final SyncValueSet<PointResource> thePointResources;
 	private final ObservableConfig theConfig;
 
 	private final SettableValue<Worker> theSelectedWorker;
 	private final SettableValue<Job> theSelectedJob;
 	private final SettableValue<Assignment> theSelectedAssignment;
+	private final SettableValue<PointResource> theSelectedPointResource;
 
 	private final AssignmentPanel theAssignmentPanel;
 	private final WorkersPanel theWorkersPanel;
 	private final JobsPanel theJobsPanel;
+	private final RedemptionPanel theRedemptionPanel;
 
-	public ChoresUI(SyncValueSet<Job> jobs, SyncValueSet<Worker> workers, SyncValueSet<Assignment> assignments, ObservableConfig config) {
+	public ChoresUI(SyncValueSet<Job> jobs, SyncValueSet<Worker> workers, SyncValueSet<Assignment> assignments,
+			SyncValueSet<PointResource> pointResources, ObservableConfig config) {
 		theJobs = jobs;
 		theWorkers = workers;
 		theAssignments = assignments;
+		thePointResources = pointResources;
 		theConfig = config;
 
 		theSelectedWorker = SettableValue.build(Worker.class).safe(false).build();
 		theSelectedJob = SettableValue.build(Job.class).safe(false).build();
 		theSelectedAssignment = SettableValue.build(Assignment.class).safe(false).build();
+		theSelectedPointResource = SettableValue.build(PointResource.class).safe(false).build();
 
 		// Select the last assignment initially
 		theSelectedAssignment.set(getLastAssignment(theAssignments.getValues()), null);
@@ -77,6 +84,7 @@ public class ChoresUI extends JPanel {
 		theAssignmentPanel = new AssignmentPanel(this);
 		theWorkersPanel = new WorkersPanel(this);
 		theJobsPanel = new JobsPanel(this);
+		theRedemptionPanel = new RedemptionPanel(this);
 
 		initComponents();
 	}
@@ -111,12 +119,20 @@ public class ChoresUI extends JPanel {
 		return theSelectedAssignment;
 	}
 
+	public SyncValueSet<PointResource> getPointResources() {
+		return thePointResources;
+	}
+
 	public SettableValue<Worker> getSelectedWorker() {
 		return theSelectedWorker;
 	}
 
 	public SettableValue<Job> getSelectedJob() {
 		return theSelectedJob;
+	}
+
+	public SettableValue<PointResource> getSelectedPointResource() {
+		return theSelectedPointResource;
 	}
 
 	private void initComponents() {
@@ -129,6 +145,7 @@ public class ChoresUI extends JPanel {
 					tabs.withVTab("assignments", theAssignmentPanel::addPanel, tab -> tab.setName("Assignments"));
 					tabs.withVTab("workers", theWorkersPanel::addPanel, tab -> tab.setName("Workers"));
 					tabs.withVTab("jobs", theJobsPanel::addPanel, tab -> tab.setName("Jobs"));
+					tabs.withVTab("points", theRedemptionPanel::addPanel, tab -> tab.setName("Redemption"));
 				});
 	}
 
@@ -180,7 +197,9 @@ public class ChoresUI extends JPanel {
 									SyncValueSet<Worker> workers = getWorkers(config, formats, "workers/worker", jobs);
 									SyncValueSet<Assignment> assignments = getAssignments(config, formats, "assignments/assignment", jobs,
 											workers);
-									onBuilt.accept(new ChoresUI(jobs, workers, assignments, config));
+									SyncValueSet<PointResource> pointResources = getPointResource(config, formats,
+											"point-resources/point-resource");
+									onBuilt.accept(new ChoresUI(jobs, workers, assignments, pointResources, config));
 								});
 					} catch (IOException e) {
 						// Put this on System.out so we don't trigger the bug warning
@@ -218,5 +237,9 @@ public class ChoresUI extends JPanel {
 			assignmentConfig.withFieldFormat(Assignment::getAssignments,
 					ObservableConfigFormat.ofEntitySet(assignedJobFormat, "assignment"));
 		}).at(path).buildEntitySet(null);
+	}
+
+	private static SyncValueSet<PointResource> getPointResource(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
+		return config.asValue(PointResource.class).withFormatSet(formats).at(path).buildEntitySet(null);
 	}
 }

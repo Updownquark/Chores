@@ -10,8 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JPanel;
-
 import org.observe.SettableValue;
 import org.observe.collect.ObservableCollection;
 import org.observe.util.TypeTokens;
@@ -23,9 +21,12 @@ import org.qommons.io.SpinnerFormat;
 import org.quark.chores.entities.AssignedJob;
 import org.quark.chores.entities.Assignment;
 import org.quark.chores.entities.Job;
+import org.quark.chores.entities.JobHistory;
+import org.quark.chores.entities.PointHistory;
+import org.quark.chores.entities.PointHistory.PointChangeType;
 import org.quark.chores.entities.Worker;
 
-public class AssignmentPanel extends JPanel {
+public class AssignmentPanel {
 	private final ChoresUI theUI;
 
 	public AssignmentPanel(ChoresUI ui) {
@@ -154,21 +155,63 @@ public class AssignmentPanel extends JPanel {
 			}
 		}
 		Map<Worker, Long> excessPoints = new IdentityHashMap<>();
+		Instant assignmentTime = theUI.getSelectedAssignment().get().getDate();
 		if (theUI.getSelectedAssignment().get() != null) {
 			for (Worker worker : theUI.getWorkers().getValues()) {
 				excessPoints.put(worker, worker.getExcessPoints() - worker.getAbility());
+				worker.getPointHistory().create()//
+						.with(PointHistory::getWorker, worker)//
+						.with(PointHistory::getTime, assignmentTime)//
+						.with(PointHistory::getChangeType, PointChangeType.Expectations)//
+						.with(PointHistory::getChangeSourceId, -1L)//
+						.with(PointHistory::getQuantity, 0.0)//
+						.with(PointHistory::getBeforePoints, worker.getExcessPoints())//
+						.with(PointHistory::getPointChange, -worker.getAbility())//
+						.create();
 			}
 			for (AssignedJob job : theUI.getSelectedAssignment().get().getAssignments().getValues()) {
 				excessPoints.compute(job.getWorker(), (worker, excess) -> {
-					// Cap the excess point deficit at the worker's ability--don't let the points pile up forever
-					return Math.max(excess + job.getCompletion(), -worker.getAbility());
+					worker.getPointHistory().create()//
+							.with(PointHistory::getWorker, worker)//
+							.with(PointHistory::getTime, assignmentTime)//
+							.with(PointHistory::getChangeType, PointChangeType.Job)//
+							.with(PointHistory::getQuantity, 1.0)//
+							.with(PointHistory::getChangeSourceId, job.getJob().getId())//
+							.with(PointHistory::getChangeSourceName, job.getJob().getName())//
+							.with(PointHistory::getBeforePoints, excess)//
+							.with(PointHistory::getPointChange, job.getCompletion())//
+							.create();
+					return excess + job.getCompletion();
 				});
 				if (job.getCompletion() >= job.getJob().getDifficulty()) {
 					job.getJob().setLastDone(theUI.getSelectedAssignment().get().getDate());
+					job.getJob().getHistory().create()//
+							.with(JobHistory::getJob, job.getJob())//
+							.with(JobHistory::getWorkerId, job.getWorker().getId())//
+							.with(JobHistory::getWorkerName, job.getWorker().getName())//
+							.with(JobHistory::getAmountComplete, job.getCompletion())//
+							.with(JobHistory::getTime, assignmentTime)//
+							.create();
 				}
 			}
 			for (Map.Entry<Worker, Long> entry : excessPoints.entrySet()) {
-				entry.getKey().setExcessPoints(entry.getValue());
+				long newPoints = entry.getValue();
+				if (newPoints < -entry.getKey().getAbility()) {
+					int adjustment = (int) -newPoints - entry.getKey().getAbility();
+					// Cap the excess point deficit at the worker's ability--don't let the points pile up forever
+					entry.getKey().getPointHistory().create()//
+							.with(PointHistory::getWorker, entry.getKey())//
+							.with(PointHistory::getTime, assignmentTime)//
+							.with(PointHistory::getChangeType, PointChangeType.Cap)//
+							.with(PointHistory::getChangeSourceId, -1L)//
+							.with(PointHistory::getQuantity, 1.0)//
+							.with(PointHistory::getBeforePoints, newPoints)//
+							.with(PointHistory::getPointChange, adjustment)//
+							.create();
+					newPoints = -entry.getKey().getAbility();
+				}
+				entry.getKey().setExcessPoints(newPoints);
+				entry.setValue(newPoints);
 			}
 		} else {
 			for (Worker worker : theUI.getWorkers().getValues()) {
