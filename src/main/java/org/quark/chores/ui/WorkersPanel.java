@@ -2,20 +2,26 @@ package org.quark.chores.ui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.time.Duration;
 import java.time.Instant;
 
 import org.observe.ObservableValue;
 import org.observe.SettableValue;
 import org.observe.collect.ObservableCollection;
+import org.observe.config.SyncValueSet;
+import org.observe.util.TypeTokens;
 import org.observe.util.swing.JustifiedBoxLayout;
 import org.observe.util.swing.ObservableCellRenderer;
 import org.observe.util.swing.PanelPopulation.PanelPopulator;
 import org.observe.util.swing.PanelPopulation.TableBuilder;
+import org.qommons.Nameable;
 import org.qommons.StringUtils;
 import org.qommons.io.Format;
 import org.qommons.io.SpinnerFormat;
 import org.quark.chores.entities.AssignedJob;
+import org.quark.chores.entities.Assignment;
 import org.quark.chores.entities.Job;
+import org.quark.chores.entities.JobHistory;
 import org.quark.chores.entities.PointHistory;
 import org.quark.chores.entities.PointHistory.PointChangeType;
 import org.quark.chores.entities.PointResource;
@@ -109,6 +115,149 @@ public class WorkersPanel {
 				.flattenValue(theUI.getSelectedAssignment().map(assn -> assn == null ? null : assn.getAssignments().getValues()));
 		ObservableCollection<AssignedJob> assignments = allAssignments.flow().refresh(theUI.getSelectedWorker().noInitChanges())
 				.filter(assn -> assn.getWorker() == theUI.getSelectedWorker().get() ? null : "Wrong worker").collect();
+		Job totalJob=new Job(){
+			@Override
+			public String getName() {
+				return "Total Difficulty";
+			}
+
+			@Override
+			public Nameable setName(String name) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public long getId() {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public int getDifficulty() {
+				int total = 0;
+				for (AssignedJob job : assignments) {
+					total += job.getJob().getDifficulty();
+				}
+				return total;
+			}
+
+			@Override
+			public Job setDifficulty(int difficulty) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public Duration getFrequency() {
+				return null;
+			}
+
+			@Override
+			public Job setFrequency(Duration frequency) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public int getMinLevel() {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public Job setMinLevel(int minLevel) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public int getMaxLevel() {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public Job setMaxLevel(int maxLevel) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public int getPriority() {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public Job setPriority(int priority) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public boolean isActive() {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public Job setActive(boolean active) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public ObservableCollection<String> getInclusionLabels() {
+				return null;
+			}
+
+			@Override
+			public ObservableCollection<String> getExclusionLabels() {
+				return null;
+			}
+
+			@Override
+			public Instant getLastDone() {
+				return null;
+			}
+
+			@Override
+			public Job setLastDone(Instant lastDone) {
+				throw new IllegalStateException();
+			}
+
+			@Override
+			public SyncValueSet<JobHistory> getHistory() {
+				return null;
+			}
+		};
+		AssignedJob totalAssignedJob = new AssignedJob() {
+			@Override
+			public Assignment getAssignment() {
+				return null;
+			}
+
+			@Override
+			public Worker getWorker() {
+				return theUI.getSelectedWorker().get();
+			}
+
+			@Override
+			public Job getJob() {
+				return totalJob;
+			}
+
+			@Override
+			public int getCompletion() {
+				int total = 0;
+				for (AssignedJob job : assignments) {
+					total += job.getCompletion();
+				}
+				return total;
+			}
+
+			@Override
+			public AssignedJob setCompletion(int completion) {
+				throw new UnsupportedOperationException();
+			}
+		};
+		ObservableValue<AssignedJob> totalJobValue = ObservableValue.of(TypeTokens.get().of(AssignedJob.class), () -> totalAssignedJob,
+				assignments::getStamp, assignments.simpleChanges());
+		ObservableValue<ObservableCollection<AssignedJob>> totalJobColl = totalJobValue
+				.map(j -> ObservableCollection.of(AssignedJob.class, j));
+		ObservableCollection<AssignedJob> assignmentsWithTotal = ObservableCollection
+				.<AssignedJob> flattenCollections(TypeTokens.get().of(AssignedJob.class), assignments, //
+						ObservableCollection.flattenValue(totalJobColl)//
+				).collect();
 		ObservableCollection<Job> availableJobs = theUI.getJobs().getValues().flow().refresh(theUI.getSelectedWorker().noInitChanges())//
 				.whereContained(allAssignments.flow().map(Job.class, AssignedJob::getJob), false)//
 				.filter(job -> {
@@ -124,7 +273,7 @@ public class WorkersPanel {
 		SettableValue<Job> addJob = SettableValue.build(Job.class).safe(false).build()//
 				.disableWith(theUI.getSelectedAssignment().map(a -> a == null ? "No assignment" : null));
 		panel.decorate(deco -> deco.withTitledBorder("Current Assignments", Color.black))//
-				.addTable(assignments, this::configureAssignmentTable)//
+				.addTable(assignmentsWithTotal, this::configureAssignmentTable)//
 				.addComboField("Add Assignment:", addJob, availableJobs, combo -> combo
 						.renderWith(ObservableCellRenderer.<Job, Job> formatted(job -> job == null ? "Select New Job" : job.getName())//
 								.decorate((cell, deco) -> ChoreUtils.decoratePotentialJobCell(cell.getModelValue(), deco,
@@ -161,7 +310,9 @@ public class WorkersPanel {
 				.withColumn("Complete", int.class, assn -> assn.getCompletion(), col -> col.withMutation(mut -> {
 					mut.mutateAttribute((assn, complete) -> assn.setCompletion(complete))//
 							.filterAccept((entry, completion) -> {
-								if (completion < 0) {
+								if (entry.get().getAssignment() == null) {
+									return "Total row cannot be modified";
+								} else if (completion < 0) {
 									return "Completion cannot be negative";
 								} else if (completion > entry.get().getJob().getDifficulty()) {
 									return "Max completion is the difficulty of the job (" + entry.get().getJob().getDifficulty() + ")";
