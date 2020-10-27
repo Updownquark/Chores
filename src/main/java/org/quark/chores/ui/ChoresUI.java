@@ -14,8 +14,8 @@ import org.observe.config.SyncValueSet;
 import org.observe.ext.util.GitHubApiHelper;
 import org.observe.ext.util.GitHubApiHelper.Release;
 import org.observe.util.TypeTokens;
+import org.observe.util.swing.AppPopulation.ObservableUiBuilder;
 import org.observe.util.swing.ObservableSwingUtils;
-import org.observe.util.swing.ObservableSwingUtils.ObservableUiBuilder;
 import org.observe.util.swing.PanelPopulation;
 import org.qommons.io.Format;
 import org.quark.chores.entities.AssignedJob;
@@ -166,7 +166,7 @@ public class ChoresUI extends JPanel {
 				})
 				.withIcon(ChoresUI.class, "/icons/broom.jpg")//
 				.withConfigInit(ChoresUI.class, "/config/InitialConfig.xml")//
-				.withAbout(ChoresUI.class, () -> {
+				.withAbout(ChoresUI.class, about -> about.withLatestVersion(() -> {
 					Release r;
 					try {
 						r = new GitHubApiHelper("Updownquark", "Chores").getLatestRelease(ChoresUI.class);
@@ -175,14 +175,14 @@ public class ChoresUI extends JPanel {
 						return null;
 					}
 					return r == null ? null : r.getTagName();
-				}, () -> {
+				}).withUpgrade(version -> {
 					try {
 						new GitHubApiHelper("Updownquark", "Chores").upgradeToLatest(ChoresUI.class, builder.getTitle().get(),
 								builder.getIcon().get());
 					} catch (IllegalStateException | IOException e) {
 						e.printStackTrace(System.out);
 					}
-				})
+				}))//
 				.withBackups(backups -> backups.withBackupSize(1_000_000, 100_000_000).withDuration(Duration.ofDays(1), Duration.ofDays(30))
 						.withBackupCount(10, 100))//
 				.withTitle("Chore Motivator").systemLandF().build((config, onBuilt) -> {
