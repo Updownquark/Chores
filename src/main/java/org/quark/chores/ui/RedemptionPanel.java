@@ -30,7 +30,8 @@ public class RedemptionPanel {
 									return null;
 								});
 					}).decorate((cell, deco) -> deco
-							.withBorder(BorderFactory.createLineBorder(cell.getCellValue() > 0 ? Color.red : Color.green))))//
+							.withBorder(BorderFactory.createLineBorder(cell.getCellValue() > 0 ? Color.red : Color.green)))//
+							.withHeaderTooltip("The number of units of this resource that can be bought for a point"))//
 					.withColumn("Unit", String.class, pr -> pr == null ? "" : pr.getUnit(), col -> col.withMutation(mut -> {
 						mut.mutateAttribute(PointResource::setUnit).asText(Format.TEXT);
 					}))//

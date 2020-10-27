@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.observe.Observable;
 import org.observe.SettableValue;
 import org.observe.collect.ObservableCollection;
 import org.observe.util.TypeTokens;
@@ -34,9 +35,12 @@ public class AssignmentPanel {
 	}
 
 	public void addPanel(PanelPopulator<?, ?> panel) {
-		ObservableCollection<AssignedJob> jobs = ObservableCollection.flattenValue(
-				theUI.getSelectedAssignment().map(assn -> assn == null ? null : assn.getAssignments().getValues()))//
-				.flow().sorted((assn1, assn2) -> {
+		ObservableCollection<AssignedJob> jobs = ObservableCollection
+				.flattenValue(theUI.getSelectedAssignment().map(assn -> assn == null ? null : assn.getAssignments().getValues()))//
+				.flow()
+				.refresh(Observable.or(theUI.getWorkers().getValues().simpleChanges(), //
+						theUI.getJobs().getValues().simpleChanges()))//
+				.sorted((assn1, assn2) -> {
 					int index1 = theUI.getWorkers().getValues().indexOf(assn1.getWorker());
 					int index2 = theUI.getWorkers().getValues().indexOf(assn2.getWorker());
 					int comp = Integer.compare(index1, index2);
