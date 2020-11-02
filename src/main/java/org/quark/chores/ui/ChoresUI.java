@@ -185,7 +185,7 @@ public class ChoresUI extends JPanel {
 				}))//
 				.withBackups(backups -> backups.withBackupSize(1_000_000, 100_000_000).withDuration(Duration.ofDays(1), Duration.ofDays(30))
 						.withBackupCount(10, 100))//
-				.withTitle("Chore Motivator").systemLandF().build((config, onBuilt) -> {
+				.withTitle("Chore Champ").systemLandF().build((config, onBuilt) -> {
 					try {
 						new GitHubApiHelper("Updownquark", "Chores").checkForNewVersion(ChoresUI.class, builder.getTitle().get(),
 								builder.getIcon().get(), release -> {

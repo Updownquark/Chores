@@ -3,10 +3,10 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <!--define folder properties-->
-	<property name="app.name" value="Chore Motivator" />
-	<property name="app.short.name" value="ChoreMotivator" />
+	<property name="app.name" value="Chore Champ" />
+	<property name="app.short.name" value="ChoreChamp" />
 	<property name="app.vendor" value="Updownquark" />
-	<property name="app.version" value="0.0.7" />
+	<property name="app.version" value="0.0.9" />
 	<property name="app.descrip" value="An app for tracking chore assignments" />
 	<property name="main.class" value="org.quark.chores.ui.ChoresUI"/>
 
