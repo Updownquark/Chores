@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.TimeZone;
 
 import org.observe.ObservableValue;
 import org.observe.SettableValue;
@@ -15,6 +16,8 @@ import org.observe.util.swing.ObservableCellRenderer;
 import org.observe.util.swing.PanelPopulation.PanelPopulator;
 import org.observe.util.swing.PanelPopulation.TableBuilder;
 import org.qommons.Nameable;
+import org.qommons.QommonsUtils;
+import org.qommons.QommonsUtils.TimePrecision;
 import org.qommons.StringUtils;
 import org.qommons.io.Format;
 import org.qommons.io.SpinnerFormat;
@@ -413,6 +416,62 @@ public class WorkersPanel {
 							.create();
 					worker.setExcessPoints(worker.getExcessPoints() - points.get());
 				}, btn -> btn.withText(redeemButtonName).disableWith(redemptionDisabled)));
+
+		{
+			SettableValue<Integer> amountDone = SettableValue.build(int.class).safe(false).withValue(1).build();
+			SettableValue<Job> job = SettableValue.build(Job.class).safe(false).build();
+			SettableValue<Instant> doneTime = SettableValue.build(Instant.class).safe(false).withValue(Instant.now()).build();
+			ObservableValue<Integer> jobDifficulty = job.map(j -> j == null ? 0 : j.getDifficulty());
+			ObservableValue<String> relativeDoneTime = doneTime.map(t -> QommonsUtils.printRelativeTime(t.toEpochMilli(),
+					System.currentTimeMillis(), TimePrecision.MINUTES, TimeZone.getDefault(), 60000, "just now"));
+			ObservableCollection<Job> availableJobs = theUI.getJobs().getValues().flow().refresh(theUI.getSelectedWorker().noInitChanges())//
+					.filter(j -> {
+						Worker worker = theUI.getSelectedWorker().get();
+						if (worker == null) {
+							return "No selected worker";
+						} else if (!AssignmentPanel.shouldDo(worker, j, 1_000_000)) {
+							return "Illegal assignment";
+						} else {
+							return null;
+						}
+					}).collect();
+			panel.addHPanel("Freelance:", new JustifiedBoxLayout(false).mainLeading(),
+					freelancePanel -> freelancePanel
+							.addTextField(null, amountDone, SpinnerFormat.INT, tf -> tf.modifyEditor(tf2 -> tf2.withColumns(3)))//
+							.addLabel(null, "/", null)//
+							.addLabel(null, jobDifficulty, Format.INT, null)//
+							.addLabel(null, " of ", null)//
+							.addComboField(null, job, availableJobs, null)//
+							.addLabel(null, " done ", null)
+							.addTextField(null, doneTime, ChoreUtils.DATE_FORMAT, tf -> tf.modifyEditor(tf2 -> tf2.withColumns(12)))//
+							.addLabel(null, " (", null)//
+							.addLabel(null, relativeDoneTime, Format.TEXT, null)//
+							.addLabel(null, ")", null)//
+							.addButton("Report Work", __ -> {
+								Worker worker = theUI.getSelectedWorker().get();
+								long oldPoints = worker.getExcessPoints();
+								job.get().getHistory().create()//
+										.with(JobHistory::getJob, job.get())//
+										.with(JobHistory::getWorkerId, worker.getId())//
+										.with(JobHistory::getWorkerName, worker.getName())//
+										.with(JobHistory::getAmountComplete, amountDone.get())//
+										.with(JobHistory::getTime, doneTime.get())//
+										.create();
+								worker.getPointHistory().create()//
+										.with(PointHistory::getWorker, worker)//
+										.with(PointHistory::getChangeType, PointChangeType.Job)//
+										.with(PointHistory::getChangeSourceId, job.get().getId())//
+										.with(PointHistory::getChangeSourceName, job.get().getName())//
+										.with(PointHistory::getBeforePoints, oldPoints)//
+										.with(PointHistory::getPointChange, amountDone.get())//
+										.with(PointHistory::getQuantity, 1.0)//
+										.with(PointHistory::getTime, doneTime.get())//
+										.create();
+								worker.setExcessPoints(oldPoints + amountDone.get());
+								job.get().setLastDone(doneTime.get());
+							}, button -> button.disableWith(job.map(j -> j == null ? "No job selected" : null))));
+		}
+
 		ObservableCollection<PointHistory> history = ObservableCollection
 				.flattenValue(theUI.getSelectedWorker().map(w -> w == null ? null : w.getPointHistory().getValues()))//
 				.flow().sorted((h1, h2) -> h2.getTime().compareTo(h1.getTime())).collect();
