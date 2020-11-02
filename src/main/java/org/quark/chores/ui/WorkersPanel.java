@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.TimeZone;
 
 import org.observe.ObservableValue;
 import org.observe.SettableValue;
@@ -16,9 +15,9 @@ import org.observe.util.swing.ObservableCellRenderer;
 import org.observe.util.swing.PanelPopulation.PanelPopulator;
 import org.observe.util.swing.PanelPopulation.TableBuilder;
 import org.qommons.Nameable;
-import org.qommons.QommonsUtils;
-import org.qommons.QommonsUtils.TimePrecision;
 import org.qommons.StringUtils;
+import org.qommons.TimeUtils;
+import org.qommons.TimeUtils.DurationComponentType;
 import org.qommons.io.Format;
 import org.qommons.io.SpinnerFormat;
 import org.quark.chores.entities.AssignedJob;
@@ -422,8 +421,14 @@ public class WorkersPanel {
 			SettableValue<Job> job = SettableValue.build(Job.class).safe(false).build();
 			SettableValue<Instant> doneTime = SettableValue.build(Instant.class).safe(false).withValue(Instant.now()).build();
 			ObservableValue<Integer> jobDifficulty = job.map(j -> j == null ? 0 : j.getDifficulty());
-			ObservableValue<String> relativeDoneTime = doneTime.map(t -> QommonsUtils.printRelativeTime(t.toEpochMilli(),
-					System.currentTimeMillis(), TimePrecision.MINUTES, TimeZone.getDefault(), 60000, "just now"));
+			TimeUtils.RelativeTimeFormat rtf = TimeUtils.relativeFormat()//
+					.abbreviated(true, false)//
+					.withMonthsAndYears()//
+					.withJustNow("just now")//
+					.withMaxElements(2)//
+					.withAgo("ago")//
+					.withMaxPrecision(DurationComponentType.Minute);
+			ObservableValue<String> relativeDoneTime = doneTime.map(t -> rtf.print(t));
 			ObservableCollection<Job> availableJobs = theUI.getJobs().getValues().flow().refresh(theUI.getSelectedWorker().noInitChanges())//
 					.filter(j -> {
 						Worker worker = theUI.getSelectedWorker().get();
