@@ -160,12 +160,13 @@ public class AssignmentPanel {
 		}
 		Map<Worker, Long> excessPoints = new IdentityHashMap<>();
 		Instant assignmentTime = theUI.getSelectedAssignment().get().getDate();
+		Instant now = Instant.now();
 		if (theUI.getSelectedAssignment().get() != null) {
 			for (Worker worker : theUI.getWorkers().getValues()) {
 				excessPoints.put(worker, worker.getExcessPoints() - worker.getAbility());
 				worker.getPointHistory().create()//
 						.with(PointHistory::getWorker, worker)//
-						.with(PointHistory::getTime, assignmentTime)//
+						.with(PointHistory::getTime, now)//
 						.with(PointHistory::getChangeType, PointChangeType.Expectations)//
 						.with(PointHistory::getChangeSourceId, -1L)//
 						.with(PointHistory::getQuantity, 0.0)//
@@ -177,7 +178,7 @@ public class AssignmentPanel {
 				excessPoints.compute(job.getWorker(), (worker, excess) -> {
 					worker.getPointHistory().create()//
 							.with(PointHistory::getWorker, worker)//
-							.with(PointHistory::getTime, assignmentTime)//
+							.with(PointHistory::getTime, now)//
 							.with(PointHistory::getChangeType, PointChangeType.Job)//
 							.with(PointHistory::getQuantity, 1.0)//
 							.with(PointHistory::getChangeSourceId, job.getJob().getId())//
@@ -205,7 +206,7 @@ public class AssignmentPanel {
 					// Cap the excess point deficit at the worker's ability--don't let the points pile up forever
 					entry.getKey().getPointHistory().create()//
 							.with(PointHistory::getWorker, entry.getKey())//
-							.with(PointHistory::getTime, assignmentTime)//
+							.with(PointHistory::getTime, now)//
 							.with(PointHistory::getChangeType, PointChangeType.Cap)//
 							.with(PointHistory::getChangeSourceId, -1L)//
 							.with(PointHistory::getQuantity, 1.0)//

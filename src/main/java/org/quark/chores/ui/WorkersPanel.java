@@ -339,20 +339,29 @@ public class WorkersPanel {
 				return "";
 			}
 			StringBuilder str = new StringBuilder();
-			str.append(r.getRate());
-			if (r.getUnit().length() > 0) {
-				str.append(r.getUnit());
+			if (r.getRate() > 0) {
+				str.append(r.getRate()).append(' ');
+				if (r.getUnit().length() > 0) {
+					str.append(r.getUnit());
+				}
+				str.append("/point");
+			} else {
+				double rate2 = -r.getRate();
+				str.append(rate2).append(' ').append(rate2 == 1 ? "point" : "points");
+				if (r.getUnit().length() > 0) {
+					str.append('/').append(r.getUnit());
+				}
 			}
-			str.append("/point");
 			return str.toString();
 		});
 		SettableValue<Integer> points = SettableValue.build(int.class).safe(false).withValue(0).build();
+		ObservableValue<String> redeemLabel = resource.map(r -> (r == null || r.getRate() > 0) ? "Redeem" : "Grant");
 		Format<Double> dblFormat = Format.doubleFormat("0.###");
 		ObservableValue<String> quantity = points.transform(String.class, tx -> tx.combineWith(resource).combine((p, res) -> {
 			if (res == null) {
 				return "";
 			}
-			double q = p * res.getRate();
+			double q = p * Math.abs(res.getRate());
 			StringBuilder str = new StringBuilder();
 			dblFormat.append(str, q);
 			if (res.getUnit().length() > 0) {
@@ -368,7 +377,7 @@ public class WorkersPanel {
 						return "No selected worker";
 					} else if (p == 0) {
 						return "Select the number of points to redeem";
-					} else if (p > 0) {
+					} else if ((res.getRate() > 0) == (p > 0)) {
 						if (worker.getExcessPoints() < p) {
 							return worker.getName() + " only has " + worker.getExcessPoints() + " points available";
 						}
@@ -394,7 +403,8 @@ public class WorkersPanel {
 		}));
 		panel.addHPanel("Redeem:", new JustifiedBoxLayout(false).mainLeading(), redeemPanel -> redeemPanel
 				.addComboField(null, resource, theUI.getPointResources().getValues(), null)//
-				.addLabel(null, "  Redeem ", null)//
+				.spacer(2).addLabel(null, redeemLabel, Format.TEXT, null)//
+				.spacer(2)
 				.addTextField(null, points, SpinnerFormat.INT, text -> text.modifyEditor(tf -> tf.withColumns(4).setCommitOnType(true)))//
 				.addLabel(null, " points at ", null)//
 				.addLabel(null, rate, Format.TEXT, lbl -> lbl.decorate(deco -> deco.bold()))//
