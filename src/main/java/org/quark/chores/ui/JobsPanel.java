@@ -1,13 +1,23 @@
 package org.quark.chores.ui;
 
+import java.awt.Color;
 import java.time.Duration;
 import java.time.Instant;
 
+import javax.swing.JPanel;
+
+import org.observe.Observable;
+import org.observe.assoc.ObservableMultiMap;
+import org.observe.collect.ObservableCollection;
+import org.observe.util.TypeTokens;
 import org.observe.util.swing.PanelPopulation.PanelPopulator;
 import org.qommons.StringUtils;
 import org.qommons.io.Format;
 import org.qommons.io.SpinnerFormat;
+import org.quark.chores.entities.AssignedJob;
 import org.quark.chores.entities.Job;
+import org.quark.chores.entities.JobHistory;
+import org.quark.chores.entities.Worker;
 
 public class JobsPanel {
 	private final ChoresUI theUI;
@@ -17,14 +27,33 @@ public class JobsPanel {
 	}
 
 	public void addPanel(PanelPopulator<?, ?> panel) {
+		ObservableMultiMap<Job, AssignedJob> assignedWorkers = ObservableCollection
+				.flattenValue(theUI.getSelectedAssignment().map(a -> a == null ? null : a.getAssignments().getValues()))//
+				.flow().groupBy(Job.class, AssignedJob::getJob, null).gather();
+		// assignedWorkers.onChange(evt -> {
+		// System.out.println(evt);
+		// });
+		ObservableCollection<Job> jobs = theUI.getJobs().getValues().flow()
+				.refresh(Observable.flatten(//
+						theUI.getSelectedAssignment().value().map(a -> a == null ? null : a.getAssignments().getValues().simpleChanges())))
+				.collect();
 		panel.addSplit(true, split -> split.fill().fillV()//
 				.withSplitProportion(theUI.getConfig().asValue(double.class).at("jobs-split")
-						.withFormat(Format.doubleFormat("0.0#"), () -> .3).buildValue(null))//
-				.firstV(top -> top.addTable(theUI.getJobs().getValues(), table -> {
+						.withFormat(Format.doubleFormat("0.0#"), () -> .5).buildValue(null))//
+				.firstV(top -> top.addTable(jobs, table -> {
 					table.fill().fillV().dragSourceRow(null).dragAcceptRow(null)// Drag reordering
 							.withNameColumn(Job::getName, Job::setName, true, col -> col.withWidths(50, 150, 250))//
 							.withColumn("Points", int.class, Job::getDifficulty,
-									col -> col.withMutation(mut -> mut.mutateAttribute(Job::setDifficulty).asText(SpinnerFormat.INT)))//
+									col -> col.withWidths(25, 50, 100)
+											.withMutation(mut -> mut.mutateAttribute(Job::setDifficulty).asText(SpinnerFormat.INT)))//
+							.withColumn(
+									"Assigned", TypeTokens.get().keyFor(ObservableCollection.class)
+											.<ObservableCollection<AssignedJob>> parameterized(AssignedJob.class),
+									job -> assignedWorkers.get(job), col -> {
+										col.withHeaderTooltip("The worker this job is currently assigned to");
+										col.formatText(assns -> StringUtils.conversational(", ", null)
+												.print(assns, (str, assn) -> str.append(assn.getWorker().getName())).toString());
+									})//
 							.withColumn("Min Level", int.class, Job::getMinLevel,
 									col -> col.withHeaderTooltip("The minimum level of worker that this job may be assigned to")//
 											.withMutation(mut -> mut.mutateAttribute(Job::setMinLevel).asText(SpinnerFormat.INT)))//
@@ -36,9 +65,11 @@ public class JobsPanel {
 											mut -> mut.mutateAttribute(Job::setFrequency).asText(SpinnerFormat.flexDuration(true))))//
 							.withColumn("Priority", int.class, Job::getPriority,
 									col -> col.withHeaderTooltip("The priority this job should take over other jobs")//
+											.withWidths(25, 50, 100)//
 											.withMutation(mut -> mut.mutateAttribute(Job::setPriority).asText(SpinnerFormat.INT)))//
 							.withColumn("Active", boolean.class, Job::isActive,
 									col -> col.withHeaderTooltip("Whether this job is available for automatic assignment")//
+											.withWidths(25, 50, 100)//
 											.withMutation(mut -> mut.mutateAttribute(Job::setActive).asCheck()).withWidths(25, 60, 80))//
 							.withColumn("Last Done", Instant.class, Job::getLastDone,
 									col -> col.withHeaderTooltip("The data of the assignment during which this chore was last completed")//
@@ -87,7 +118,49 @@ public class JobsPanel {
 							}, null)//
 							.withRemove(null, action -> action.confirmForItems("Remove jobs?", "Permanently delete ", "?", true));
 				}))//
-				.lastV(bottom -> bottom.visibleWhen(theUI.getSelectedJob().map(j -> j != null))//
+				.lastV(bottom -> bottom.addVPanel(editor -> {
+					editor.fill().fillV().visibleWhen(theUI.getSelectedJob().map(j -> j != null));
+					populateJobEditor(editor);
+				})//
 		));
+	}
+
+	private void populateJobEditor(PanelPopulator<JPanel, ?> editor) {
+		ObservableCollection<JobHistory> history = ObservableCollection
+				.flattenValue(theUI.getSelectedJob().map(j -> j == null ? null : j.getHistory().getValues().reverse()))//
+				.flow().sorted((h1, h2) -> h2.getTime().compareTo(h1.getTime())).collect();
+		editor.addTable(history, table -> {
+			table.fill().fillV().decorate(deco -> deco.withTitledBorder("History", Color.black))//
+					.withColumn("Time", Instant.class, JobHistory::getTime,
+							col -> col.formatText(t -> ChoreUtils.DATE_FORMAT.format(t)).withWidths(80, 100, 200))//
+					.withColumn("Worker", String.class, h -> {
+						String currentName = null;
+						for (Worker worker : theUI.getWorkers().getValues()) {
+							if (worker.getId() == h.getWorkerId()) {
+								currentName = worker.getName();
+								break;
+							}
+						}
+						if (currentName != null) {
+							if (!currentName.equals(h.getWorkerName())) {
+								h.setWorkerName(currentName);
+							}
+							return currentName;
+						} else if (h.getWorkerName() == null) {
+							return "";
+						} else {
+							return h.getWorkerName();
+						}
+					}, col -> col.withWidths(50, 150, 500))//
+					.withColumn("Completed", int.class, JobHistory::getAmountComplete, null)//
+					.withColumn("Available Points", String.class, h -> {
+						int points = h.getPoints();
+						if (points == 0) {
+							return "?";
+						}
+						return "" + points;
+					}, null)//
+			;
+		});
 	}
 }

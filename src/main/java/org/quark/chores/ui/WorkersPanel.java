@@ -40,7 +40,7 @@ public class WorkersPanel {
 		panel.addSplit(true,
 				split -> split.fill().fillV()//
 						.withSplitProportion(theUI.getConfig().asValue(double.class).at("workers-split")
-								.withFormat(Format.doubleFormat("0.0#"), () -> .3).buildValue(null))//
+								.withFormat(Format.doubleFormat("0.0#"), () -> .5).buildValue(null))//
 						.firstV(top -> top.addTable(theUI.getWorkers().getValues(), table -> {
 							table.fill().dragSourceRow(null).dragAcceptRow(null)// Re-orderable by drag
 									.withNameColumn(Worker::getName, Worker::setName, true, null)//
@@ -458,7 +458,8 @@ public class WorkersPanel {
 							.addLabel(null, " of ", null)//
 							.addComboField(null, job, availableJobs, null)//
 							.addLabel(null, " done ", null)
-							.addTextField(null, doneTime, ChoreUtils.DATE_FORMAT, tf -> tf.modifyEditor(tf2 -> tf2.withColumns(12)))//
+							.addTextField(null, doneTime, ChoreUtils.DATE_FORMAT,
+									tf -> tf.modifyEditor(tf2 -> tf2.withColumns(12).setReformatOnCommit(true)))//
 							.addLabel(null, " (", null)//
 							.addLabel(null, relativeDoneTime, Format.TEXT, null)//
 							.addLabel(null, ")", null)//
@@ -470,6 +471,7 @@ public class WorkersPanel {
 										.with(JobHistory::getWorkerId, worker.getId())//
 										.with(JobHistory::getWorkerName, worker.getName())//
 										.with(JobHistory::getAmountComplete, amountDone.get())//
+										.with(JobHistory::getPoints, job.get().getDifficulty())//
 										.with(JobHistory::getTime, doneTime.get())//
 										.create();
 								worker.getPointHistory().create()//
@@ -488,7 +490,7 @@ public class WorkersPanel {
 		}
 
 		ObservableCollection<PointHistory> history = ObservableCollection
-				.flattenValue(theUI.getSelectedWorker().map(w -> w == null ? null : w.getPointHistory().getValues()))//
+				.flattenValue(theUI.getSelectedWorker().map(w -> w == null ? null : w.getPointHistory().getValues().reverse()))//
 				.flow().sorted((h1, h2) -> h2.getTime().compareTo(h1.getTime())).collect();
 		panel.addTable(history, table -> {
 			table.fill().fillV().decorate(deco -> deco.withTitledBorder("History", Color.black))//

@@ -6,7 +6,11 @@ import org.observe.config.ParentReference;
 
 public interface PointHistory {
 	public enum PointChangeType {
-		Expectations, Job, Redemption, Cap
+		@Deprecated
+		Expectations, //
+		Job, Redemption, //
+		@Deprecated
+		Cap
 	}
 
 	@ParentReference

@@ -6,7 +6,7 @@
 	<property name="app.name" value="Chore Champ" />
 	<property name="app.short.name" value="ChoreChamp" />
 	<property name="app.vendor" value="Updownquark" />
-	<property name="app.version" value="0.0.11" />
+	<property name="app.version" value="0.0.12" />
 	<property name="app.descrip" value="An app for tracking chore assignments" />
 	<property name="main.class" value="org.quark.chores.ui.ChoresUI"/>
 
