@@ -14,6 +14,7 @@ import org.observe.config.SyncValueSet;
 import org.observe.ext.util.GitHubApiHelper;
 import org.observe.ext.util.GitHubApiHelper.Release;
 import org.observe.util.TypeTokens;
+import org.observe.util.swing.AppPopulation;
 import org.observe.util.swing.AppPopulation.ObservableUiBuilder;
 import org.observe.util.swing.ObservableSwingUtils;
 import org.observe.util.swing.PanelPopulation;
@@ -174,7 +175,7 @@ public class ChoresUI extends JPanel {
 						e.printStackTrace(System.out);
 						return null;
 					}
-					return r == null ? null : r.getTagName();
+					return r == null ? null : new AppPopulation.Version(r.getTagName(), r.getName(), r.getDescription());
 				}).withUpgrade(version -> {
 					try {
 						new GitHubApiHelper("Updownquark", "Chores").upgradeToLatest(ChoresUI.class, builder.getTitle().get(),
