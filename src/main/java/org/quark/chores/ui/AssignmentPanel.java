@@ -78,9 +78,10 @@ public class AssignmentPanel {
 										.filterAccept((entry, completion) -> {
 											if (completion < 0) {
 												return "Completion cannot be negative";
-											} else if (completion > entry.get().getJob().getDifficulty()) {
-												return "Max completion is the difficulty of the job ("
-														+ entry.get().getJob().getDifficulty() + ")";
+												// If they do a great job or this doesn't get updated often, don't prevent more than the max
+												// } else if (completion > entry.get().getJob().getDifficulty()) {
+												// return "Max completion is the difficulty of the job ("
+												// + entry.get().getJob().getDifficulty() + ")";
 											} else {
 												return null;
 											}
