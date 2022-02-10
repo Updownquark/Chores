@@ -118,7 +118,7 @@ public class AssignmentPanel {
 						return null;
 					}
 				}).collect();
-		SettableValue<Job> addJob = SettableValue.build(Job.class).safe(false).build()//
+		SettableValue<Job> addJob = SettableValue.build(Job.class).onEdt().build()//
 				.disableWith(selectedWorker.map(w -> w == null ? "First, select the worker to assign the job to" : null))//
 				.disableWith(theUI.getSelectedAssignment().map(a -> a == null ? "No assignment" : null));
 		panel.addComboField(null, selectedWorker, theUI.getWorkers().getValues(),

@@ -1,7 +1,6 @@
 package org.quark.chores.ui;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -50,10 +49,10 @@ public class ChoresUI extends JPanel {
 		thePointResources = pointResources;
 		theConfig = config;
 
-		theSelectedWorker = SettableValue.build(Worker.class).safe(false).build();
-		theSelectedJob = SettableValue.build(Job.class).safe(false).build();
-		theSelectedAssignment = SettableValue.build(Assignment.class).safe(false).build();
-		theSelectedPointResource = SettableValue.build(PointResource.class).safe(false).build();
+		theSelectedWorker = SettableValue.build(Worker.class).onEdt().build();
+		theSelectedJob = SettableValue.build(Job.class).onEdt().build();
+		theSelectedAssignment = SettableValue.build(Assignment.class).onEdt().build();
+		theSelectedPointResource = SettableValue.build(PointResource.class).onEdt().build();
 
 		// Select the last assignment initially
 		theSelectedAssignment.set(getLastAssignment(theAssignments.getValues()), null);
@@ -153,7 +152,7 @@ public class ChoresUI extends JPanel {
 	public static void main(String[] args) {
 		ObservableUiBuilder builder = ObservableSwingUtils.buildUI();
 		builder
-				.withConfig("chores-config").withConfigAt("Chores.xml")//
+				.withConfig("chores-config").withConfig("chores")//
 				// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
 				// .withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
 				.enableCloseWithoutSave()//
@@ -184,8 +183,6 @@ public class ChoresUI extends JPanel {
 						e.printStackTrace(System.out);
 					}
 				}))//
-				.withBackups(backups -> backups.withBackupSize(1_000_000, 100_000_000).withDuration(Duration.ofDays(1), Duration.ofDays(30))
-						.withBackupCount(10, 100))//
 				.withTitle("Chore Champ").systemLandF().build((config, onBuilt) -> {
 					try {
 						new GitHubApiHelper("Updownquark", "Chores").checkForNewVersion(ChoresUI.class, builder.getTitle().get(),

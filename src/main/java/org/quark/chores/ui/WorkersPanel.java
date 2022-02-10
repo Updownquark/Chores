@@ -272,7 +272,7 @@ public class WorkersPanel {
 						return null;
 					}
 				}).collect();
-		SettableValue<Job> addJob = SettableValue.build(Job.class).safe(false).build()//
+		SettableValue<Job> addJob = SettableValue.build(Job.class).onEdt().build()//
 				.disableWith(theUI.getSelectedAssignment().map(a -> a == null ? "No assignment" : null));
 		panel.decorate(deco -> deco.withTitledBorder("Current Assignments", Color.black))//
 				.addTable(assignmentsWithTotal, this::configureAssignmentTable)//
@@ -354,7 +354,7 @@ public class WorkersPanel {
 			}
 			return str.toString();
 		});
-		SettableValue<Integer> points = SettableValue.build(int.class).safe(false).withValue(0).build();
+		SettableValue<Integer> points = SettableValue.build(int.class).onEdt().withValue(0).build();
 		ObservableValue<String> redeemLabel = resource.map(r -> (r == null || r.getRate() > 0) ? "Redeem" : "Grant");
 		Format<Double> dblFormat = Format.doubleFormat("0.###");
 		ObservableValue<String> quantity = points.transform(String.class, tx -> tx.combineWith(resource).combine((p, res) -> {
@@ -427,9 +427,9 @@ public class WorkersPanel {
 				}, btn -> btn.withText(redeemButtonName).disableWith(redemptionDisabled)));
 
 		{
-			SettableValue<Integer> amountDone = SettableValue.build(int.class).safe(false).withValue(1).build();
-			SettableValue<Job> job = SettableValue.build(Job.class).safe(false).build();
-			SettableValue<Instant> doneTime = SettableValue.build(Instant.class).safe(false).withValue(Instant.now()).build();
+			SettableValue<Integer> amountDone = SettableValue.build(int.class).onEdt().withValue(1).build();
+			SettableValue<Job> job = SettableValue.build(Job.class).onEdt().build();
+			SettableValue<Instant> doneTime = SettableValue.build(Instant.class).onEdt().withValue(Instant.now()).build();
 			ObservableValue<Integer> jobDifficulty = job.map(j -> j == null ? 0 : j.getDifficulty());
 			TimeUtils.RelativeTimeFormat rtf = TimeUtils.relativeFormat()//
 					.abbreviated(true, false)//
