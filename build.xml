@@ -34,10 +34,9 @@
             </manifest>
             <fileset dir="${dir.buildfile}/target/classes"/>
             <fileset dir="${dir.buildfile}/src"/>
-            <fileset dir="${dir.workspace}/Qommons/classes"/>
+            <fileset dir="${dir.workspace}/Qommons/target/classes"/>
             <fileset dir="${dir.workspace}/Qommons/src/main/java"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/Qommons/lib/jdom-2.0.1.jar"/>
-            <fileset dir="${dir.workspace}/ObServe/classes"/>
+            <fileset dir="${dir.workspace}/ObServe/target/classes"/>
             <fileset dir="${dir.workspace}/ObServe/src/main/java"/>
             <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/ObServe/lib/guava-18.0.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/ObServe/lib/miglayout-core-4.2.jar"/>
@@ -47,30 +46,4 @@
             <fileset dir="${dir.workspace}/ObServe-ext/src/main/java"/>
         </jar>
     </target>
-	<target name="deploy-exe" depends="jar">
-		<copy todir="target/native/exe">
-			<fileset dir="${dir.jarfile}">
-				<include name="${app.short.name}.jar" />
-			</fileset>
-		</copy>
-	</target>
-	<!--<target name="exe"
-		depends="jar"
-		>
-		<exec executable="${packager}">
-			<arg value="-deploy" />
-			<arg line="-native exe" />
-			<arg line="-outdir ${dir.buildfile}/target/native" />
-			<arg line="-outfile ${app.short.name}" />
-			<arg line="-title &quot;${app.name}&quot;" />
-			<arg line="-description &quot;${app.descrip}&quot;" />
-			<arg line="-srcfiles ${jar.file}" />
-			<arg line="-appclass ${main.class}" />
-			<arg line="-name &quot;${app.name}&quot;" />
-			<arg value="-Bmainjar=${jar.file}" />
-			<arg value="-BappVersion=${app.version}" />
-			<arg value="-Bvendor=${app.vendor}" />
-			<arg value="-Bicon=icons/broom.ico" />
-		</exec>
-	</target>-->
 </project>

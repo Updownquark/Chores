@@ -438,7 +438,7 @@ public class WorkersPanel {
 					.withMaxElements(2)//
 					.withAgo("ago")//
 					.withMaxPrecision(DurationComponentType.Minute);
-			ObservableValue<String> relativeDoneTime = doneTime.map(t -> rtf.print(t));
+			ObservableValue<String> relativeDoneTime = doneTime.map(t -> rtf.printAsDuration(t, Instant.now()));
 			ObservableCollection<Job> availableJobs = theUI.getJobs().getValues().flow().refresh(theUI.getSelectedWorker().noInitChanges())//
 					.filter(j -> {
 						Worker worker = theUI.getSelectedWorker().get();
