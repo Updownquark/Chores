@@ -18,6 +18,7 @@ import org.observe.util.swing.JustifiedBoxLayout;
 import org.observe.util.swing.ObservableCellRenderer;
 import org.observe.util.swing.PanelPopulation.PanelPopulator;
 import org.qommons.BiTuple;
+import org.qommons.StringUtils;
 import org.qommons.io.SpinnerFormat;
 import org.quark.chores.entities.AssignedJob;
 import org.quark.chores.entities.Assignment;
@@ -45,9 +46,7 @@ public class AssignmentPanel {
 					int index2 = theUI.getWorkers().getValues().indexOf(assn2.getWorker());
 					int comp = Integer.compare(index1, index2);
 					if (comp == 0) {
-						index1 = theUI.getJobs().getValues().indexOf(assn1.getJob());
-						index2 = theUI.getJobs().getValues().indexOf(assn2.getJob());
-						comp = Integer.compare(index1, index2);
+						comp=StringUtils.compareNumberTolerant(assn1.getJob().getName(), assn2.getJob().getName(), true, true);
 					}
 					return comp;
 				}).collect();
@@ -89,9 +88,10 @@ public class AssignmentPanel {
 							}))//
 					.withRemove(toRemove -> {
 						theUI.getSelectedAssignment().get().getAssignments().getValues().removeAll(toRemove);
-					}, removeAction -> {
-						removeAction.confirmForItems("Delete Assignment(s)?", "Are you sure you want to delete ", "?", true);
-					})//
+					}, removeAction -> removeAction//
+							.confirmForItems("Delete Assignment(s)?", "Are you sure you want to delete ", "?", true)//
+							.displayAsButton(true).displayAsPopup(false)//
+			)//
 			;
 		});
 		panel.addHPanel("Add Assignment:", "box", this::configureAddAssignmentPanel);

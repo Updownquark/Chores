@@ -74,9 +74,11 @@ public class WorkersPanel {
 																"Worker", StringUtils.PAREN_DUPLICATES))//
 												.with(Worker::getAbility, 100)//
 												.create().get();
-									}, null)//
+									}, action -> action.displayAsButton(true).displayAsPopup(false))//
 									.withRemove(null,
-											action -> action.confirmForItems("Remove workers?", "Permanently delete ", "?", true));
+											action -> action.confirmForItems("Remove workers?", "Permanently delete ", "?", true)//
+													.displayAsButton(true).displayAsPopup(false)//
+							);
 						}))//
 						.lastV(bottom -> bottom.addVPanel(p -> populateWorkerEditor(p.fill().fillV()))));
 	}
@@ -326,9 +328,10 @@ public class WorkersPanel {
 				)//
 				.withRemove(jobs -> {
 					theUI.getSelectedAssignment().get().getAssignments().getValues().removeAll(jobs);
-				}, removeAction -> {
-					removeAction.confirmForItems("Delete Assignment(s)?", "Are you sure you want to delete ", "?", true);
-				});
+				}, removeAction -> removeAction//
+						.confirmForItems("Delete Assignment(s)?", "Are you sure you want to delete ", "?", true)//
+						.displayAsButton(true).displayAsPopup(false)//
+				);
 
 	}
 
@@ -438,7 +441,7 @@ public class WorkersPanel {
 					.withMaxElements(2)//
 					.withAgo("ago")//
 					.withMaxPrecision(DurationComponentType.Minute);
-			ObservableValue<String> relativeDoneTime = doneTime.map(t -> rtf.print(t));
+			ObservableValue<String> relativeDoneTime = doneTime.map(t -> rtf.printAsDuration(t, Instant.now()));
 			ObservableCollection<Job> availableJobs = theUI.getJobs().getValues().flow().refresh(theUI.getSelectedWorker().noInitChanges())//
 					.filter(j -> {
 						Worker worker = theUI.getSelectedWorker().get();

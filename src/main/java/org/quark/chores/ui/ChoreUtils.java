@@ -17,7 +17,7 @@ public class ChoreUtils {
 	public static SpinnerFormat<List<String>> LABEL_SET_FORMAT = new SpinnerFormat.ListFormat<>(SpinnerFormat.NUMERICAL_TEXT, ",", " ");
 	public static final TypeToken<List<String>> LABEL_SET_TYPE = new TypeToken<List<String>>() {
 	};
-	public static final Format<Instant> DATE_FORMAT = SpinnerFormat.flexDate(Instant::now, "EEE MMM d",
+	public static final Format<Instant> DATE_FORMAT = SpinnerFormat.flexDate(Instant::now, "EEE MMM d, yyyy",
 			opts -> opts.withMaxResolution(TimeUtils.DateElementType.Minute));
 	public static final int DEFAULT_PREFERENCE = 5;
 

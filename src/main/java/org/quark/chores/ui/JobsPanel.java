@@ -33,9 +33,9 @@ public class JobsPanel {
 		// assignedWorkers.onChange(evt -> {
 		// System.out.println(evt);
 		// });
-		ObservableCollection<Job> jobs = theUI.getJobs().getValues().flow()
-				.refresh(Observable.flatten(//
-						theUI.getSelectedAssignment().value().map(a -> a == null ? null : a.getAssignments().getValues().simpleChanges())))
+		ObservableCollection<Job> jobs = theUI.getJobs().getValues().flow().refresh(Observable.flatten(//
+				theUI.getSelectedAssignment().value().map(a -> a == null ? null : a.getAssignments().getValues().simpleChanges())))
+				.sorted((j1, j2) -> StringUtils.compareNumberTolerant(j1.getName(), j2.getName(), true, true))//
 				.collect();
 		panel.addSplit(true, split -> split.fill().fillV()//
 				.withSplitProportion(theUI.getConfig().asValue(double.class).at("jobs-split")
@@ -77,9 +77,8 @@ public class JobsPanel {
 											.withMutation(mut -> mut.mutateAttribute(Job::setLastDone).asText(//
 													ChoreUtils.DATE_FORMAT)))//
 							.withColumn("Inclusion Labels", ChoreUtils.LABEL_SET_TYPE, Job::getInclusionLabels,
-									col -> col
-											.withHeaderTooltip(
-													"If given, a worker MUST be assigned one of these labels in order to be assigned the job")
+									col -> col.withHeaderTooltip(
+											"If given, a worker MUST be assigned one of these labels in order to be assigned the job")
 											.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
 											.withMutation(mut -> mut.mutateAttribute((job, labels) -> {
 												job.getInclusionLabels().retainAll(labels);
@@ -91,9 +90,8 @@ public class JobsPanel {
 												return null;
 											}).asText(ChoreUtils.LABEL_SET_FORMAT)))//
 							.withColumn("Exclusion Labels", ChoreUtils.LABEL_SET_TYPE, Job::getExclusionLabels,
-									col -> col
-											.withHeaderTooltip(
-													"If given, a worker CANNOT be assigned one of these labels in order to be assigned the job")
+									col -> col.withHeaderTooltip(
+											"If given, a worker CANNOT be assigned one of these labels in order to be assigned the job")
 											.formatText(ChoreUtils.LABEL_SET_FORMAT::format)
 											.withMutation(mut -> mut.mutateAttribute((job, labels) -> {
 												job.getExclusionLabels().retainAll(labels);
@@ -115,14 +113,17 @@ public class JobsPanel {
 										.with(Job::getDifficulty, 1)//
 										.with(Job::getMaxLevel, 100)//
 										.create().get();
-							}, null)//
-							.withRemove(null, action -> action.confirmForItems("Remove jobs?", "Permanently delete ", "?", true));
+							}, action -> action.displayAsButton(true))//
+							.withRemove(null, action -> action//
+									.confirmForItems("Remove jobs?", "Permanently delete ", "?", true)//
+									.displayAsButton(true).displayAsPopup(false)//
+					);
 				}))//
 				.lastV(bottom -> bottom.addVPanel(editor -> {
 					editor.fill().fillV().visibleWhen(theUI.getSelectedJob().map(j -> j != null));
 					populateJobEditor(editor);
 				})//
-		));
+				));
 	}
 
 	private void populateJobEditor(PanelPopulator<JPanel, ?> editor) {
