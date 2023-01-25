@@ -154,57 +154,56 @@ public class ChoresUI extends JPanel {
 		EventQueue.invokeLater(() -> {
 			ObservableUiBuilder builder = ObservableSwingUtils.buildUI();
 			builder.withConfig("chores-config").withConfig("chores")//
-					// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
-					// .withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
-					.enableCloseWithoutSave()//
-					.withErrorReporting("https://github.com/Updownquark/Chores/issues/new", (str, error) -> {
-						if (error) {
-							str.append("<ol><li>Describe your issue, what you did to produce it, what effects it had, etc.</li>");
-						} else {
-							str.append("<ol><li>Describe your issue or feature idea");
-						}
-						str.append("</li><li>Click \"Submit new issue\"</li></ol>");
-					}).withIcon(ChoresUI.class, "/icons/broom.jpg")//
-					.withConfigInit(ChoresUI.class, "/config/InitialConfig.xml")//
-					.withAbout(ChoresUI.class, about -> about.withLatestVersion(() -> {
-						Release r;
-						try {
-							r = new GitHubApiHelper("Updownquark", "Chores").getLatestRelease(ChoresUI.class);
-						} catch (IOException e) {
-							e.printStackTrace(System.out);
-							return null;
-						}
-						return r == null ? null : new AppPopulation.Version(r.getTagName(), r.getName(), r.getDescription());
-					}).withUpgrade(version -> {
-						try {
-							new GitHubApiHelper("Updownquark", "Chores").upgradeToLatest(ChoresUI.class, builder.getTitle().get(),
-									builder.getIcon().get());
-						} catch (IllegalStateException | IOException e) {
-							e.printStackTrace(System.out);
-						}
-					}))//
-					.withTitle("Chore Champ").systemLandF()//
-					.build((config, onBuilt) -> {
-						try {
-							new GitHubApiHelper("Updownquark", "Chores").checkForNewVersion(ChoresUI.class, builder.getTitle().get(),
-									builder.getIcon().get(), release -> {
-										String declinedRelease = config.get("declined-release");
-										return !release.getTagName().equals(declinedRelease);
-									}, release -> config.set("declined-release", release.getTagName()), () -> {
-										ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
-										SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");
-										SyncValueSet<Worker> workers = getWorkers(config, formats, "workers/worker", jobs);
-										SyncValueSet<Assignment> assignments = getAssignments(config, formats, "assignments/assignment",
-												jobs, workers);
-										SyncValueSet<PointResource> pointResources = getPointResource(config, formats,
-												"point-resources/point-resource");
-										onBuilt.accept(new ChoresUI(jobs, workers, assignments, pointResources, config));
-									});
-						} catch (IOException e) {
-							// Put this on System.out so we don't trigger the bug warning
-							e.printStackTrace(System.out);
-						}
-					});
+				// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
+				// .withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
+				.enableCloseWithoutSave()//
+				.withErrorReporting("https://github.com/Updownquark/Chores/issues/new", (str, error) -> {
+					if (error) {
+						str.append("<ol><li>Describe your issue, what you did to produce it, what effects it had, etc.</li>");
+					} else {
+						str.append("<ol><li>Describe your issue or feature idea");
+					}
+					str.append("</li><li>Click \"Submit new issue\"</li></ol>");
+				}).withIcon(ChoresUI.class, "/icons/broom.jpg")//
+				.withConfigInit(ChoresUI.class, "/config/InitialConfig.xml")//
+				.withAbout(ChoresUI.class, about -> about.withLatestVersion(() -> {
+					Release r;
+					try {
+						r = new GitHubApiHelper("Updownquark", "Chores").getLatestRelease(ChoresUI.class);
+					} catch (IOException e) {
+						e.printStackTrace(System.out);
+						return null;
+					}
+					return r == null ? null : new AppPopulation.Version(r.getTagName(), r.getName(), r.getDescription());
+				}).withUpgrade(version -> {
+					try {
+						new GitHubApiHelper("Updownquark", "Chores").upgradeToLatest(ChoresUI.class, builder.getTitle().get(),
+							builder.getIcon().get());
+					} catch (IllegalStateException | IOException e) {
+						e.printStackTrace(System.out);
+					}
+				}))//
+				.withTitle("Chore Champ").systemLandF().build((config, onBuilt) -> {
+					try {
+						new GitHubApiHelper("Updownquark", "Chores").checkForNewVersion(ChoresUI.class, builder.getTitle().get(),
+							builder.getIcon().get(), release -> {
+								String declinedRelease = config.get("declined-release");
+								return !release.getTagName().equals(declinedRelease);
+							}, release -> config.set("declined-release", release.getTagName()), () -> {
+								ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
+								SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");
+								SyncValueSet<Worker> workers = getWorkers(config, formats, "workers/worker", jobs);
+								SyncValueSet<Assignment> assignments = getAssignments(config, formats, "assignments/assignment", jobs,
+									workers);
+								SyncValueSet<PointResource> pointResources = getPointResource(config, formats,
+									"point-resources/point-resource");
+								onBuilt.accept(new ChoresUI(jobs, workers, assignments, pointResources, config));
+							});
+					} catch (IOException e) {
+						// Put this on System.out so we don't trigger the bug warning
+						e.printStackTrace(System.out);
+					}
+				});
 		});
 	}
 
