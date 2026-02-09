@@ -65,6 +65,13 @@ public class QuickChores {
 				.create().get();
 	}
 
+	public void deleteJob(Job job) {
+		for (Assignment assn : assignments.getValues()) {
+			assn.getAssignments().getValues().removeIf(assnJob -> assnJob.getJob() == job);
+		}
+		jobs.getValues().remove(job);
+	}
+
 	public PointResource createResource() {
 		return resources.create()//
 				.with(PointResource::getName, "New Resource")//

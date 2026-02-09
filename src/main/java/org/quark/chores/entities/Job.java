@@ -7,11 +7,13 @@ import org.observe.collect.ObservableCollection;
 import org.observe.config.SyncValueSet;
 import org.observe.util.Identified;
 import org.observe.util.NamedEntity;
+import org.observe.util.ObjectMethodOverride;
+import org.observe.util.ObjectMethodOverride.ObjectMethod;
 
 public interface Job extends Identified, NamedEntity {
 	/**
 	 * Renamed "Points" in the app
-	 * 
+	 *
 	 * @return The number of points the job is worth
 	 */
 	int getDifficulty();
@@ -38,4 +40,9 @@ public interface Job extends Identified, NamedEntity {
 	Job setLastDone(Instant lastDone);
 
 	SyncValueSet<JobHistory> getHistory();
+
+	@ObjectMethodOverride(ObjectMethod.hashCode)
+	default int hashCode0() {
+		return Long.hashCode(getId());
+	}
 }

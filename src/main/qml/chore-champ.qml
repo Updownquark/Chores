@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <quick xmlns:quick="Quick-X v0.1" xmlns:config="Expresso-Config v0.1" with-extension="window"
-	title="`Chore Champ`" close-action="exit" x="config.windowX" y="config.windowY" width="config.windowW" height="config.windowH">
+	title="`Chore Champ`" window-icon="`/icons/broom.jpg`" close-action="exit"
+	x="config.windowX" y="config.windowY" width="config.windowW" height="config.windowH">
 	<head>
 		<imports>
 			<import>org.quark.chores.ui.*</import>
@@ -107,14 +108,15 @@
 						<text-field />
 					</column-edit>
 				</column>
-				<column name="`Points`" value="job.getDifficulty()">
+				<column name="`Points`" value="job.getDifficulty()" pref-width="65">
 					<column-edit column-edit-value-name="newPoints" commit="job.setDifficulty(newPoints)">
 						<text-field />
 					</column-edit>
 				</column>
-				<variable-columns for-each="app.workers" column-element-as="worker" name="worker.getName()+` `+worker.getExcessPoints()"
+				<variable-columns for-each="app.workers" column-element-as="worker" name="columnName"
 					value="assignment==null ? -1 : assignment.getCompletion()" column-value-name="completion">
 					<model>
+						<value name="columnName">worker.getName()+` (`+worker.getExcessPoints()+`)`</value>
 						<value name="assignment" type="AssignedJob">app.currentWorkerJobAssignments.observe(new BiTuple&lt;>(worker, job))</value>
 						<value name="shouldAssign">app.ui.shouldAssign(worker, job)</value>
 					</model>
@@ -177,8 +179,11 @@
 				<button action="doWork">`Report Work`</button>
 			</box>
 			<tabs visible="app.selectedWorker!=null">
-				<table tab-id="`usage`" tab-name="`Point Usage`" rows="app.resources" active-value-name="resource">
+				<table tab-id="`usage`" tab-name="`Point Usage`" rows="resources" active-value-name="resource">
 					<model>
+						<transform name="resources" source="app.resources">
+							<refresh on="app.selectedWorker" />
+						</transform>
 						<field-value name="usagePoints" source="app.usage.observe(new BiTuple&lt;>(app.selectedWorker, resource))"
 							target-as="newUsage" save="app.usage.put(new BiTuple&lt;>(app.selectedWorker, resource), newUsage)" />
 					</model>
@@ -220,7 +225,7 @@
 					<model>
 						<list name="_historyItems" type="PointHistory">app.selectedWorker.getPointHistory().getValues()</list>
 						<transform name="historyItems" source="_historyItems">
-							<sort sort-value-as="h">
+							<sort sort-value-as="h" ascending="false">
 								<sort-by>h.getTime()</sort-by>
 							</sort>
 						</transform>
@@ -261,7 +266,7 @@
 				<action name="create" always-enabled="true">app.selectedJob=app.ui.createJob()</action>
 			</model>
 			<confirm visible="jobToDelete!=null" title="`Delete Job '`+jobToDelete.getName()+`?`"
-				on-confirm="{app.jobs.remove(jobToDelete), jobToDelete=null}" on-cancel="jobToDelete=null">
+				on-confirm="{app.ui.deleteJob(jobToDelete), jobToDelete=null}" on-cancel="jobToDelete=null">
 				<label value="`Are you sure you want to delete this job? This cannot be undone.`" />
 			</confirm>
 			<column name="`Name`" value="job.getName()">
@@ -274,12 +279,14 @@
 					<text-field />
 				</column-edit>
 			</column>
-			<column name="`Assigned`" value="assigned">
+			<column name="`Assigned`" value="assignedStr">
 				<model>
 					<list name="assignments" type="AssignedJob">app.currentJobAssignments.get(job)</list>
 					<transform name="assigned" source="assignments">
 						<map-to source-as="assn">assn.getWorker().getName()</map-to>
 					</transform>
+					<value name="_assignedStr">assignments.toString()</value>
+					<value name="assignedStr">_assignedStr.substring(1, _assignedStr.length()-1)</value>
 				</model>
 			</column>
 			<column name="`Last Done`" value="job.getLastDone()" />
