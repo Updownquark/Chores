@@ -16,30 +16,40 @@
 				<value name="windowW" type="int" config-path="width" default="1000" />
 				<value name="windowH" type="int" config-path="height" default="800"/>
 			</config>
+			<entity-data-set name="data" config-name="Chores" migrations="`/org/quark/chores/entities/Schema History.xml`">
+				<sorted-set name="jobs" type="Job" />
+				<sorted-set name="workers" type="Worker" />
+				<sorted-set name="assignments" type="Assignment" />
+				<sorted-set name="resources" type="PointResource" />
+
+				<value-set name="jobsVS" type="Job" />
+				<value-set name="workersVS" type="Worker" />
+				<value-set name="assignmentsVS" type="Assignment" />
+				<value-set name="resourcesVS" type="PointResource" />
+				
+				<!-- A smaller set of backup ages than the default -->
+				<data-backup ages="{`15s`, `5m`, `1h`, `1d`, `1w`, `1mo`}" />
+			</entity-data-set>
 			<model name="app">
-				<constant name="ui">new QuickChores(config.$CONFIG$)</constant>
+				<constant name="ui">new QuickChores(data.jobsVS, data.workersVS, data.assignmentsVS, data.resourcesVS, config.$CONFIG$)</constant>
 				
-				<list name="_jobs" type="Job">ui.jobs.getValues()</list>
-				<list name="workers" type="Worker">ui.workers.getValues()</list>
-				<list name="_assignments" type="Assignment">ui.assignments.getValues()</list>
-				<list name="_resources" type="PointResource">ui.resources.getValues()</list>
-				
-				<transform name="jobs" source="_jobs">
+				<transform name="jobs" source="data.jobs">
 					<sort sort-value-as="job">
 						<sort-by>job.getName()</sort-by>
 					</sort>
 				</transform>
-				<transform name="resources" source="_resources">
+				<transform name="workers" source="data.workers">
+					<sort sort-value-as="worker" ascending="false">
+						<sort-by>worker.getAbility()</sort-by>
+					</sort>
+				</transform>
+				<transform name="resources" source="data.resources">
 					<sort sort-value-as="resource">
 						<sort-by>resource.getName()</sort-by>
 					</sort>
 				</transform>
-				<transform name="assignments" source="_assignments">
-					<sort sort-value-as="assn">
-						<sort-by ascending="false">assn.getDate()</sort-by>
-					</sort>
-				</transform>
-				<transform name="currentAssignment" source="assignments">
+				
+				<transform name="currentAssignment" source="data.assignments">
 					<terminal first="true" />
 				</transform>
 				<list name="currentAssignments" type="AssignedJob">currentAssignment.getAssignments().getValues()</list>
@@ -58,16 +68,16 @@
 				<value name="selectedJob" type="Job" />
 				<value name="selectedWorker" type="Worker" />
 				<value name="selectedResource" type="PointResource" />
-				<transform name="allJobAssignments" source="assignments">
+				<transform name="allJobAssignments" source="data.assignments">
 					<map-to source-as="assn">assn.getAssignments().getValues()</map-to>
 					<flatten to="list" />
 					<filter source-as="assn" test="assn.getJob()==selectedJob" />
 					<sort sort-value-as="assn">
 						<sort-by ascending="false">assn.getAssignment().getDate()</sort-by>
-						<sort-by>_assignments.indexOf(assn.getWorker())</sort-by>
+						<sort-by>data.assignments.indexOf(assn.getWorker())</sort-by>
 					</sort>
 				</transform>
-				<transform name="allWorkerAssignments" source="assignments">
+				<transform name="allWorkerAssignments" source="data.assignments">
 					<map-to source-as="assn">assn.getAssignments().getValues()</map-to>
 					<flatten to="list" />
 					<filter source-as="assn" test="assn.getWorker()==selectedWorker" />
@@ -140,7 +150,10 @@
 				<action name="create" always-enabled="true">app.selectedWorker=app.ui.createWorker()</action>
 			</model>
 			<confirm visible="workerToDelete!=null" title="`Delete Worker '`+workerToDelete.getName()+`?`"
-				on-confirm="{app.workers.remove(workerToDelete), workerToDelete=null}" on-cancel="workerToDelete=null">
+				on-confirm="{app.ui.deleteWorker(workerToDelete), reset}" on-cancel="reset">
+				<model>
+					<action name="reset" on-thread="ANY">workerToDelete=null</action>
+				</model>
 				<label value="`Are you sure you want to delete this worker? This cannot be undone.`" />
 			</confirm>
 			<table rows="app.workers" active-value-name="worker" selection="app.selectedWorker">
@@ -266,7 +279,10 @@
 				<action name="create" always-enabled="true">app.selectedJob=app.ui.createJob()</action>
 			</model>
 			<confirm visible="jobToDelete!=null" title="`Delete Job '`+jobToDelete.getName()+`?`"
-				on-confirm="{app.ui.deleteJob(jobToDelete), jobToDelete=null}" on-cancel="jobToDelete=null">
+				on-confirm="{app.ui.deleteJob(jobToDelete), reset}" on-cancel="reset">
+				<model>
+					<action name="reset" on-thread="ANY">jobToDelete=null</action>
+				</model>
 				<label value="`Are you sure you want to delete this job? This cannot be undone.`" />
 			</confirm>
 			<column name="`Name`" value="job.getName()">
@@ -285,7 +301,7 @@
 					<transform name="assigned" source="assignments">
 						<map-to source-as="assn">assn.getWorker().getName()</map-to>
 					</transform>
-					<value name="_assignedStr">assignments.toString()</value>
+					<value name="_assignedStr">assigned.toString()</value>
 					<value name="assignedStr">_assignedStr.substring(1, _assignedStr.length()-1)</value>
 				</model>
 			</column>
@@ -321,7 +337,10 @@
 				<action name="create" always-enabled="true">app.selectedResource=app.ui.createResource()</action>
 			</model>
 			<confirm visible="resourceToDelete!=null" title="`Delete Resource '`+resourceToDelete.getName()+`?`"
-				on-confirm="{app.resources.remove(resourceToDelete), resourceToDelete=null}" on-cancel="resourceToDelete=null">
+				on-confirm="{data.resources.remove(resourceToDelete), reset}" on-cancel="reset">
+				<model>
+					<action name="reset" on-thread="ANY">resourceToDelete=null</action>
+				</model>
 				<label value="`Are you sure you want to delete this resource? This cannot be undone.`" />
 			</confirm>
 			<column name="`Name`" value="resource.getName()">

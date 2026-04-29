@@ -9,8 +9,12 @@ import org.observe.util.Identified;
 import org.observe.util.NamedEntity;
 import org.observe.util.ObjectMethodOverride;
 import org.observe.util.ObjectMethodOverride.ObjectMethod;
+import org.qommons.io.BetterFile;
+import org.qommons.io.FileUtils;
 
 public interface Job extends Identified, NamedEntity {
+	public static final BetterFile SCHEMA_HISTORY = FileUtils.getClassFile(Job.class).getParent().at("Schema History.xml");
+
 	/**
 	 * Renamed "Points" in the app
 	 *

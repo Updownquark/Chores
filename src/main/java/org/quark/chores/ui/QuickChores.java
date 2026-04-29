@@ -7,10 +7,8 @@ import java.util.Map;
 import org.observe.assoc.ObservableMap;
 import org.observe.collect.ObservableCollection;
 import org.observe.config.ObservableConfig;
-import org.observe.config.ObservableConfigFormat;
-import org.observe.config.ObservableConfigFormatSet;
-import org.observe.config.SyncValueSet;
-import org.observe.util.TypeTokens;
+import org.observe.config.ObservableValueSet;
+import org.observe.config.ValueOperationException;
 import org.qommons.Named;
 import org.qommons.Transaction;
 import org.qommons.io.Format;
@@ -22,21 +20,21 @@ public class QuickChores {
 			ObservableCollection::create);
 
 	private final ObservableConfig theConfig;
-	public final SyncValueSet<Job> jobs;
-	public final SyncValueSet<Worker> workers;
-	public final SyncValueSet<Assignment> assignments;
-	public final SyncValueSet<PointResource> resources;
+	public final ObservableValueSet<Job> jobs;
+	public final ObservableValueSet<Worker> workers;
+	public final ObservableValueSet<Assignment> assignments;
+	public final ObservableValueSet<PointResource> resources;
 
 	private final ObservableMap<Long, Job> theJobsById;
 	private final ObservableMap<Long, PointResource> theResourcesById;
 
-	public QuickChores(ObservableConfig config) {
+	public QuickChores(ObservableValueSet<Job> jobs, ObservableValueSet<Worker> workers, ObservableValueSet<Assignment> assignments,
+			ObservableValueSet<PointResource> resources, ObservableConfig config) {
 		theConfig = config;
-		ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
-		jobs = getJobs(config, formats, "jobs/job");
-		workers = getWorkers(config, formats, "workers/worker", jobs);
-		assignments = getAssignments(config, formats, "assignments/assignment", jobs, workers);
-		resources = getPointResources(config, formats, "point-resources/point-resource");
+		this.jobs = jobs;
+		this.workers = workers;
+		this.assignments = assignments;
+		this.resources = resources;
 
 		theJobsById = jobs.getValues().flow()//
 				.groupBy(Job::getId, null)//
@@ -48,14 +46,14 @@ public class QuickChores {
 				.singleMap(true);
 	}
 
-	public Worker createWorker() {
+	public Worker createWorker() throws IllegalArgumentException, ValueOperationException {
 		return workers.create()//
 				.with(Worker::getName, "New Worker")//
 				.with(Worker::getAbility, 100)//
 				.create().get();
 	}
 
-	public Job createJob() {
+	public Job createJob() throws IllegalArgumentException, ValueOperationException {
 		return jobs.create()//
 				.with(Job::getName, "New Job")//
 				.with(Job::isActive, true)//
@@ -65,6 +63,13 @@ public class QuickChores {
 				.create().get();
 	}
 
+	public void deleteWorker(Worker worker) {
+		for (Assignment assn : assignments.getValues()) {
+			assn.getAssignments().getValues().removeIf(assnJob -> assnJob.getWorker() == worker);
+		}
+		workers.getValues().remove(worker);
+	}
+
 	public void deleteJob(Job job) {
 		for (Assignment assn : assignments.getValues()) {
 			assn.getAssignments().getValues().removeIf(assnJob -> assnJob.getJob() == job);
@@ -72,7 +77,7 @@ public class QuickChores {
 		jobs.getValues().remove(job);
 	}
 
-	public PointResource createResource() {
+	public PointResource createResource() throws IllegalArgumentException, ValueOperationException {
 		return resources.create()//
 				.with(PointResource::getName, "New Resource")//
 				.with(PointResource::getRate, 1.0)//
@@ -117,7 +122,7 @@ public class QuickChores {
 		return null;
 	}
 
-	public void submit(Assignment currentAssignment) {
+	public void submit(Assignment currentAssignment) throws IllegalArgumentException, ValueOperationException {
 		if (currentAssignment != null) {
 			Map<Worker, Long> excessPoints = new IdentityHashMap<>();
 			for (Worker worker : workers.getValues()) {
@@ -230,11 +235,12 @@ public class QuickChores {
 		return null;
 	}
 
-	private static SyncValueSet<Job> getJobs(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
+	/*
+	private static SyncValueSet<Job> getConfigJobs(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
 		return config.asValue(Job.class).withFormatSet(formats).at(path).buildEntitySet(null);
 	}
 
-	private static SyncValueSet<Worker> getWorkers(ObservableConfig config, ObservableConfigFormatSet formats, String path,
+	private static SyncValueSet<Worker> getConfigWorkers(ObservableConfig config, ObservableConfigFormatSet formats, String path,
 			SyncValueSet<Job> jobs) {
 		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(jobs.getValues(), null)//
 				.withField("id", Job::getId, ObservableConfigFormat.LONG).build();
@@ -244,7 +250,7 @@ public class QuickChores {
 		}).at(path).buildEntitySet(null);
 	}
 
-	private static SyncValueSet<Assignment> getAssignments(ObservableConfig config, ObservableConfigFormatSet formats, String path,
+	private static SyncValueSet<Assignment> getConfigAssignments(ObservableConfig config, ObservableConfigFormatSet formats, String path,
 			SyncValueSet<Job> jobs, SyncValueSet<Worker> workers) {
 		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(jobs.getValues(), null)//
 				.withField("id", Job::getId, ObservableConfigFormat.LONG).build();
@@ -261,7 +267,9 @@ public class QuickChores {
 		}).at(path).buildEntitySet(null);
 	}
 
-	private static SyncValueSet<PointResource> getPointResources(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
+	private static SyncValueSet<PointResource> getConfigPointResources(ObservableConfig config, ObservableConfigFormatSet formats,
+			String path) {
 		return config.asValue(PointResource.class).withFormatSet(formats).at(path).buildEntitySet(null);
 	}
+	 */
 }

@@ -17,5 +17,5 @@
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="--quick-app=chore-champ-app.qml"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Chores"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
-    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="&quot;-DChores.config=C:\Users\abutler\My Drive\Synced\Chores&quot;"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="&quot;-DChores.config=C:\Users\abutler\My Drive\Synced\Chores&quot;&#13;&#10;-splash:${workspace_loc:Chores}/src/main/resources/icons/sisyphus.gif"/>
 </launchConfiguration>
