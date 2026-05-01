@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.observe.assoc.ObservableMap;
 import org.observe.collect.ObservableCollection;
+import org.observe.collect.ObservableSet;
 import org.observe.config.ObservableConfig;
 import org.observe.config.ObservableValueSet;
 import org.observe.config.ValueOperationException;
@@ -16,8 +17,8 @@ import org.quark.chores.entities.*;
 import org.quark.chores.entities.PointHistory.PointChangeType;
 
 public class QuickChores {
-	public static final Format<ObservableCollection<String>> LABELS_FORMAT = new Format.CollectionFormat<>(Format.TEXT, ", ", null, null,
-			ObservableCollection::create);
+	public static final Format<ObservableSet<String>> LABELS_FORMAT = new Format.CollectionFormat<>(Format.TEXT, ", ", null, null,
+			ObservableSet::create);
 
 	private final ObservableConfig theConfig;
 	public final ObservableValueSet<Job> jobs;
@@ -58,7 +59,7 @@ public class QuickChores {
 				.with(Job::getName, "New Job")//
 				.with(Job::isActive, true)//
 				.with(Job::getPriority, 5)//
-				.with(Job::getDifficulty, 1)//
+				.with(Job::getPoints, 1)//
 				.with(Job::getMaxLevel, 100)//
 				.create().get();
 	}
@@ -144,14 +145,14 @@ public class QuickChores {
 					.create();
 					return excess + job.getCompletion();
 				});
-				if (job.getCompletion() >= job.getJob().getDifficulty()) {
+				if (job.getCompletion() >= job.getJob().getPoints()) {
 					job.getJob().setLastDone(currentAssignment.getDate());
 					job.getJob().getHistory().create()//
 					.with(JobHistory::getJob, job.getJob())//
 					.with(JobHistory::getWorkerId, job.getWorker().getId())//
 					.with(JobHistory::getWorkerName, job.getWorker().getName())//
 					.with(JobHistory::getAmountComplete, job.getCompletion())//
-					.with(JobHistory::getPoints, job.getJob().getDifficulty())//
+					.with(JobHistory::getPoints, job.getJob().getPoints())//
 					.with(JobHistory::getTime, assignmentTime)//
 					.create();
 				}
@@ -179,7 +180,7 @@ public class QuickChores {
 		.with(JobHistory::getWorkerId, worker.getId())//
 		.with(JobHistory::getWorkerName, worker.getName())//
 		.with(JobHistory::getAmountComplete, points)//
-		.with(JobHistory::getPoints, job.getDifficulty())//
+		.with(JobHistory::getPoints, job.getPoints())//
 		.with(JobHistory::getTime, now)//
 		.create();
 		worker.getPointHistory().create()//

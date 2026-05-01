@@ -60,6 +60,8 @@ public class ChoreDataConverter {
 			// but we want to preserve these because the history entities use them explicitly
 			for (Job configJob : configJobs.getValues()) {
 				Job qdJob = qdJobs.create().with(Job::getId, configJob.getId()).copy(configJob).create().get();
+				qdJob.getExclusionLabels().addAll(configJob.getExclusionLabels());
+				qdJob.getInclusionLabels().addAll(configJob.getInclusionLabels());
 				// Copy over the history
 				for (JobHistory history : configJob.getHistory().getValues()) {
 					SyncValueCreator<JobHistory, JobHistory> creator = qdJob.getHistory().create()//
@@ -72,6 +74,7 @@ public class ChoreDataConverter {
 			}
 			for (Worker configWorker : configWorkers.getValues()) {
 				Worker qdWorker = qdWorkers.create().with(Worker::getId, configWorker.getId()).copy(configWorker).create().get();
+				qdWorker.getLabels().addAll(configWorker.getLabels());
 				// Copy over the history
 				for (PointHistory history : configWorker.getPointHistory().getValues()) {
 					SyncValueCreator<PointHistory, PointHistory> creator = qdWorker.getPointHistory().create()//

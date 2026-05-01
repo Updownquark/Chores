@@ -11,8 +11,8 @@ import org.observe.config.ObservableConfig;
 import org.observe.config.ObservableConfigFormat;
 import org.observe.config.ObservableConfigFormatSet;
 import org.observe.config.SyncValueSet;
+import org.observe.ds.impl.Release;
 import org.observe.ext.util.GitHubApiHelper;
-import org.observe.ext.util.GitHubApiHelper.Release;
 import org.observe.util.TypeTokens;
 import org.observe.util.swing.AppPopulation;
 import org.observe.util.swing.AppPopulation.ObservableUiBuilder;
@@ -141,87 +141,87 @@ public class ChoresUI extends JPanel {
 				.buildValue(null);
 
 		PanelPopulation.populateVPanel(this, null)//
-				.addTabs(tabs -> {
-					tabs.fill().fillV().withSelectedTab(selectedTab);
-					tabs.withVTab("assignments", theAssignmentPanel::addPanel, tab -> tab.setName("Assignments"));
-					tabs.withVTab("workers", theWorkersPanel::addPanel, tab -> tab.setName("Workers"));
-					tabs.withVTab("jobs", theJobsPanel::addPanel, tab -> tab.setName("Jobs"));
-					tabs.withVTab("points", theRedemptionPanel::addPanel, tab -> tab.setName("Redemption"));
-				});
+		.addTabs(tabs -> {
+			tabs.fill().fillV().withSelectedTab(selectedTab);
+			tabs.withVTab("assignments", theAssignmentPanel::addPanel, tab -> tab.setName("Assignments"));
+			tabs.withVTab("workers", theWorkersPanel::addPanel, tab -> tab.setName("Workers"));
+			tabs.withVTab("jobs", theJobsPanel::addPanel, tab -> tab.setName("Jobs"));
+			tabs.withVTab("points", theRedemptionPanel::addPanel, tab -> tab.setName("Redemption"));
+		});
 	}
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(() -> {
 			ObservableUiBuilder builder = ObservableSwingUtils.buildUI();
 			builder.withConfig("chores-config").withConfig("chores")//
-				// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
-				// .withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
-				.enableCloseWithoutSave()//
-				.withErrorReporting("https://github.com/Updownquark/Chores/issues/new", (str, error) -> {
-					if (error) {
-						str.append("<ol><li>Describe your issue, what you did to produce it, what effects it had, etc.</li>");
-					} else {
-						str.append("<ol><li>Describe your issue or feature idea");
-					}
-					str.append("</li><li>Click \"Submit new issue\"</li></ol>");
-				}).withIcon(ChoresUI.class, "/icons/broom.jpg")//
-				.withConfigInit(ChoresUI.class, "/config/InitialConfig.xml")//
-				.withAbout(ChoresUI.class, about -> about.withLatestVersion(() -> {
-					Release r;
-					try {
-						r = new GitHubApiHelper("Updownquark", "Chores").getLatestRelease(ChoresUI.class);
-					} catch (IOException e) {
-						e.printStackTrace(System.out);
-						return null;
-					}
-					return r == null ? null : new AppPopulation.Version(r.getTagName(), r.getName(), r.getDescription());
-				}).withUpgrade(version -> {
-					try {
-						new GitHubApiHelper("Updownquark", "Chores").upgradeToLatest(ChoresUI.class, builder.getTitle().get(),
+			// .withConfig("chores-motivator").withConfigAt("ChoreMotivator.xml")//
+			// .withOldConfig("chores-config").withOldConfigAt("Chores.xml")//
+			.enableCloseWithoutSave()//
+			.withErrorReporting("https://github.com/Updownquark/Chores/issues/new", (str, error) -> {
+				if (error) {
+					str.append("<ol><li>Describe your issue, what you did to produce it, what effects it had, etc.</li>");
+				} else {
+					str.append("<ol><li>Describe your issue or feature idea");
+				}
+				str.append("</li><li>Click \"Submit new issue\"</li></ol>");
+			}).withIcon(ChoresUI.class, "/icons/broom.jpg")//
+			.withConfigInit(ChoresUI.class, "/config/InitialConfig.xml")//
+			.withAbout(ChoresUI.class, about -> about.withLatestVersion(() -> {
+				Release r;
+				try {
+					r = new GitHubApiHelper("Updownquark", "Chores").getLatestRelease(ChoresUI.class);
+				} catch (IOException e) {
+					e.printStackTrace(System.out);
+					return null;
+				}
+				return r == null ? null : new AppPopulation.Version(r.getTagName(), r.getName(), r.getDescription());
+			}).withUpgrade(version -> {
+				try {
+					new GitHubApiHelper("Updownquark", "Chores").upgradeToLatest(ChoresUI.class, builder.getTitle().get(),
 							builder.getIcon().get());
-					} catch (IllegalStateException | IOException e) {
-						e.printStackTrace(System.out);
-					}
-				}))//
-				.withTitle("Chore Champ").systemLandF().build((config, onBuilt) -> {
-					try {
-						new GitHubApiHelper("Updownquark", "Chores").checkForNewVersion(ChoresUI.class, builder.getTitle().get(),
+				} catch (IllegalStateException | IOException e) {
+					e.printStackTrace(System.out);
+				}
+			}))//
+			.withTitle("Chore Champ").systemLandF().build((config, onBuilt) -> {
+				try {
+					new GitHubApiHelper("Updownquark", "Chores").checkForNewVersion(ChoresUI.class, builder.getTitle().get(),
 							builder.getIcon().get(), release -> {
-								String declinedRelease = config.get("declined-release");
+								String declinedRelease = config.observeEntities("declined-release");
 								return !release.getTagName().equals(declinedRelease);
 							}, release -> config.set("declined-release", release.getTagName()), () -> {
 								ObservableConfigFormatSet formats = new ObservableConfigFormatSet();
 								SyncValueSet<Job> jobs = getJobs(config, formats, "jobs/job");
 								SyncValueSet<Worker> workers = getWorkers(config, formats, "workers/worker", jobs);
 								SyncValueSet<Assignment> assignments = getAssignments(config, formats, "assignments/assignment", jobs,
-									workers);
+										workers);
 								SyncValueSet<PointResource> pointResources = getPointResource(config, formats,
-									"point-resources/point-resource");
+										"point-resources/point-resource");
 								onBuilt.accept(new ChoresUI(jobs, workers, assignments, pointResources, config));
 							});
-					} catch (IOException e) {
-						// Put this on System.out so we don't trigger the bug warning
-						e.printStackTrace(System.out);
-					}
-				});
+				} catch (IOException e) {
+					// Put this on System.out so we don't trigger the bug warning
+					e.printStackTrace(System.out);
+				}
+			});
 		});
 	}
 
-	private static SyncValueSet<Job> getJobs(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
+	static SyncValueSet<Job> getJobs(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
 		return config.asValue(Job.class).withFormatSet(formats).at(path).buildEntitySet(null);
 	}
 
-	private static SyncValueSet<Worker> getWorkers(ObservableConfig config, ObservableConfigFormatSet formats, String path,
+	static SyncValueSet<Worker> getWorkers(ObservableConfig config, ObservableConfigFormatSet formats, String path,
 			SyncValueSet<Job> jobs) {
 		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(jobs.getValues(), null)//
 				.withField("id", Job::getId, ObservableConfigFormat.LONG).build();
 		return config.asValue(Worker.class).withFormatSet(formats).asEntity(workerConfig -> {
-			workerConfig.withFieldFormat(Worker::getJobPreferences, ObservableConfigFormat.ofMap(jobs.getValues().getType(),
-					TypeTokens.get().INT, "job", "preference", jobRefFormat, ObservableConfigFormat.INT));
+			// workerConfig.withFieldFormat(Worker::getJobPreferences, ObservableConfigFormat.ofMap(jobs.getType().getType(),
+			// TypeTokens.get().INT, "job", "preference", jobRefFormat, ObservableConfigFormat.INT));
 		}).at(path).buildEntitySet(null);
 	}
 
-	private static SyncValueSet<Assignment> getAssignments(ObservableConfig config, ObservableConfigFormatSet formats, String path,
+	static SyncValueSet<Assignment> getAssignments(ObservableConfig config, ObservableConfigFormatSet formats, String path,
 			SyncValueSet<Job> jobs, SyncValueSet<Worker> workers) {
 		ObservableConfigFormat<Job> jobRefFormat = ObservableConfigFormat.<Job> buildReferenceFormat(jobs.getValues(), null)//
 				.withField("id", Job::getId, ObservableConfigFormat.LONG).build();
@@ -238,7 +238,7 @@ public class ChoresUI extends JPanel {
 		}).at(path).buildEntitySet(null);
 	}
 
-	private static SyncValueSet<PointResource> getPointResource(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
+	static SyncValueSet<PointResource> getPointResource(ObservableConfig config, ObservableConfigFormatSet formats, String path) {
 		return config.asValue(PointResource.class).withFormatSet(formats).at(path).buildEntitySet(null);
 	}
 }

@@ -1,6 +1,6 @@
 package org.quark.chores.entities;
 
-import org.observe.collect.ObservableCollection;
+import org.observe.collect.ObservableSet;
 import org.observe.config.SyncValueSet;
 import org.observe.util.Identified;
 import org.observe.util.NamedEntity;
@@ -17,7 +17,7 @@ public interface Worker extends Identified, NamedEntity {
 	int getLevel();
 	Worker setLevel(int level);
 
-	ObservableCollection<String> getLabels();
+	ObservableSet<String> getLabels();
 
 	// ObservableMap<Job, Integer> getJobPreferences();
 

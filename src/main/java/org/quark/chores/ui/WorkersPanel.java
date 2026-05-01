@@ -136,16 +136,16 @@ public class WorkersPanel {
 			}
 
 			@Override
-			public int getDifficulty() {
+			public int getPoints() {
 				int total = 0;
 				for (AssignedJob job : assignments) {
-					total += job.getJob().getDifficulty();
+					total += job.getJob().getPoints();
 				}
 				return total;
 			}
 
 			@Override
-			public Job setDifficulty(int difficulty) {
+			public Job setPoints(int difficulty) {
 				throw new IllegalStateException();
 			}
 
@@ -302,7 +302,7 @@ public class WorkersPanel {
 						Color borderColor;
 						if (cell.getModelValue().getCompletion() == 0) {
 							borderColor = Color.red;
-						} else if (cell.getModelValue().getCompletion() < cell.getModelValue().getJob().getDifficulty()) {
+						} else if (cell.getModelValue().getCompletion() < cell.getModelValue().getJob().getPoints()) {
 							borderColor = Color.yellow;
 						} else {
 							borderColor = Color.green;
@@ -310,7 +310,7 @@ public class WorkersPanel {
 						deco.withLineBorder(borderColor, 2, false);
 					});
 				})//
-				.withColumn("Difficulty", int.class, assn -> assn.getJob().getDifficulty(), null)//
+				.withColumn("Difficulty", int.class, assn -> assn.getJob().getPoints(), null)//
 				.withColumn("Complete", int.class, assn -> assn.getCompletion(), col -> col.withMutation(mut -> {
 					mut.mutateAttribute((assn, complete) -> assn.setCompletion(complete))//
 							.filterAccept((entry, completion) -> {
@@ -318,8 +318,8 @@ public class WorkersPanel {
 									return "Total row cannot be modified";
 								} else if (completion < 0) {
 									return "Completion cannot be negative";
-								} else if (completion > entry.get().getJob().getDifficulty()) {
-									return "Max completion is the difficulty of the job (" + entry.get().getJob().getDifficulty() + ")";
+								} else if (completion > entry.get().getJob().getPoints()) {
+									return "Max completion is the difficulty of the job (" + entry.get().getJob().getPoints() + ")";
 								} else {
 									return null;
 								}
@@ -433,7 +433,7 @@ public class WorkersPanel {
 			SettableValue<Integer> amountDone = SettableValue.build(int.class).onEdt().withValue(1).build();
 			SettableValue<Job> job = SettableValue.build(Job.class).onEdt().build();
 			SettableValue<Instant> doneTime = SettableValue.build(Instant.class).onEdt().withValue(Instant.now()).build();
-			ObservableValue<Integer> jobDifficulty = job.map(j -> j == null ? 0 : j.getDifficulty());
+			ObservableValue<Integer> jobDifficulty = job.map(j -> j == null ? 0 : j.getPoints());
 			TimeUtils.RelativeTimeFormat rtf = TimeUtils.relativeFormat()//
 					.abbreviated(true, false)//
 					.withMonthsAndYears()//
@@ -474,7 +474,7 @@ public class WorkersPanel {
 										.with(JobHistory::getWorkerId, worker.getId())//
 										.with(JobHistory::getWorkerName, worker.getName())//
 										.with(JobHistory::getAmountComplete, amountDone.get())//
-										.with(JobHistory::getPoints, job.get().getDifficulty())//
+										.with(JobHistory::getPoints, job.get().getPoints())//
 										.with(JobHistory::getTime, doneTime.get())//
 										.create();
 								worker.getPointHistory().create()//

@@ -61,7 +61,7 @@ public class AssignmentPanel {
 							Color borderColor;
 							if (cell.getModelValue().getCompletion() == 0) {
 								borderColor = Color.red;
-							} else if (cell.getModelValue().getCompletion() < cell.getModelValue().getJob().getDifficulty()) {
+							} else if (cell.getModelValue().getCompletion() < cell.getModelValue().getJob().getPoints()) {
 								borderColor = Color.yellow;
 							} else {
 								borderColor = Color.green;
@@ -69,7 +69,7 @@ public class AssignmentPanel {
 							deco.withLineBorder(borderColor, 2, false);
 						});
 					})//
-					.withColumn("Points", int.class, entry -> entry.getJob().getDifficulty(),
+					.withColumn("Points", int.class, entry -> entry.getJob().getPoints(),
 							col -> col.withHeaderTooltip("The number of points the job is worth"))//
 					.withColumn("Complete", int.class, entry -> entry.getCompletion(),
 							col -> col.withHeaderTooltip("The amount of the job that is complete").withMutation(mut -> {
@@ -146,9 +146,9 @@ public class AssignmentPanel {
 		StringBuilder message = null;
 		if (theUI.getSelectedAssignment().get() != null) {
 			for (AssignedJob job : theUI.getSelectedAssignment().get().getAssignments().getValues()) {
-				if (job.getCompletion() < job.getJob().getDifficulty()) {
+				if (job.getCompletion() < job.getJob().getPoints()) {
 					message = append(message, job.getWorker().getName() + ": " + job.getJob().getName() + " "
-							+ ((int) Math.round(job.getCompletion() * 100.0 / job.getJob().getDifficulty())) + "% complete");
+							+ ((int) Math.round(job.getCompletion() * 100.0 / job.getJob().getPoints())) + "% complete");
 				}
 			}
 		}
@@ -180,14 +180,14 @@ public class AssignmentPanel {
 							.create();
 					return excess + job.getCompletion();
 				});
-				if (job.getCompletion() >= job.getJob().getDifficulty()) {
+				if (job.getCompletion() >= job.getJob().getPoints()) {
 					job.getJob().setLastDone(theUI.getSelectedAssignment().get().getDate());
 					job.getJob().getHistory().create()//
 							.with(JobHistory::getJob, job.getJob())//
 							.with(JobHistory::getWorkerId, job.getWorker().getId())//
 							.with(JobHistory::getWorkerName, job.getWorker().getName())//
 							.with(JobHistory::getAmountComplete, job.getCompletion())//
-							.with(JobHistory::getPoints, job.getJob().getDifficulty())//
+							.with(JobHistory::getPoints, job.getJob().getPoints())//
 							.with(JobHistory::getTime, assignmentTime)//
 							.create();
 				}
@@ -314,7 +314,7 @@ public class AssignmentPanel {
 					.with(AssignedJob::getJob, job)//
 					.with(AssignedJob::getCompletion, 0)//
 					.create();
-			if (workers.compute(worker, (__, work) -> work - job.getDifficulty()) <= 0) {
+			if (workers.compute(worker, (__, work) -> work - job.getPoints()) <= 0) {
 				workers.remove(worker);
 			}
 
@@ -336,7 +336,7 @@ public class AssignmentPanel {
 		if (worker.getLevel() < job.getMinLevel() || worker.getLevel() > job.getMaxLevel()) {
 			return false;
 		}
-		if (job.getDifficulty() > workLeft * 2) {
+		if (job.getPoints() > workLeft * 2) {
 			return false;
 		}
 		for (String label : worker.getLabels()) {
@@ -365,7 +365,7 @@ public class AssignmentPanel {
 			for (AssignedJob job : theUI.getSelectedAssignment().get().getAssignments().getValues()) {
 				if (job.getCompletion() > 0) {
 					message = append(message, job.getWorker().getName() + ": " + job.getJob().getName() + " "
-							+ ((int) Math.round(job.getCompletion() * 100.0 / job.getJob().getDifficulty())) + "% complete");
+							+ ((int) Math.round(job.getCompletion() * 100.0 / job.getJob().getPoints())) + "% complete");
 				}
 			}
 		}

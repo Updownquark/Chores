@@ -43,9 +43,9 @@ public class JobsPanel {
 				.firstV(top -> top.addTable(jobs, table -> {
 					table.fill().fillV().dragSourceRow(null).dragAcceptRow(null)// Drag reordering
 							.withNameColumn(Job::getName, Job::setName, true, col -> col.withWidths(50, 150, 250))//
-							.withColumn("Points", int.class, Job::getDifficulty,
+							.withColumn("Points", int.class, Job::getPoints,
 									col -> col.withWidths(25, 50, 100)
-											.withMutation(mut -> mut.mutateAttribute(Job::setDifficulty).asText(SpinnerFormat.INT)))//
+											.withMutation(mut -> mut.mutateAttribute(Job::setPoints).asText(SpinnerFormat.INT)))//
 							.withColumn(
 									"Assigned", TypeTokens.get().keyFor(ObservableCollection.class)
 											.<ObservableCollection<AssignedJob>> parameterized(AssignedJob.class),
@@ -110,7 +110,7 @@ public class JobsPanel {
 														StringUtils.PAREN_DUPLICATES))//
 										.with(Job::isActive, true)//
 										.with(Job::getPriority, 5)//
-										.with(Job::getDifficulty, 1)//
+										.with(Job::getPoints, 1)//
 										.with(Job::getMaxLevel, 100)//
 										.create().get();
 							}, action -> action.displayAsButton(true))//

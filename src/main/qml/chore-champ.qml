@@ -118,8 +118,8 @@
 						<text-field />
 					</column-edit>
 				</column>
-				<column name="`Points`" value="job.getDifficulty()" pref-width="65">
-					<column-edit column-edit-value-name="newPoints" commit="job.setDifficulty(newPoints)">
+				<column name="`Points`" value="job.getPoints()" pref-width="65">
+					<column-edit column-edit-value-name="newPoints" commit="job.setPoints(newPoints)">
 						<text-field />
 					</column-edit>
 				</column>
@@ -290,8 +290,8 @@
 					<text-field />
 				</column-edit>
 			</column>
-			<column name="`Points`" value="job.getDifficulty()">
-				<column-edit column-edit-value-name="newDifficulty" commit="job.setDifficulty(newDifficulty)">
+			<column name="`Points`" value="job.getPoints()">
+				<column-edit column-edit-value-name="newPoints" commit="job.setPoints(newPoints)">
 					<text-field />
 				</column-edit>
 			</column>

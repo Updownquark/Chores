@@ -3,7 +3,7 @@ package org.quark.chores.entities;
 import java.time.Duration;
 import java.time.Instant;
 
-import org.observe.collect.ObservableCollection;
+import org.observe.collect.ObservableSet;
 import org.observe.config.SyncValueSet;
 import org.observe.util.Identified;
 import org.observe.util.NamedEntity;
@@ -15,13 +15,8 @@ import org.qommons.io.FileUtils;
 public interface Job extends Identified, NamedEntity {
 	public static final BetterFile SCHEMA_HISTORY = FileUtils.getClassFile(Job.class).getParent().at("Schema History.xml");
 
-	/**
-	 * Renamed "Points" in the app
-	 *
-	 * @return The number of points the job is worth
-	 */
-	int getDifficulty();
-	Job setDifficulty(int difficulty);
+	int getPoints();
+	Job setPoints(int points);
 
 	Duration getFrequency();
 	Job setFrequency(Duration frequency);
@@ -37,8 +32,8 @@ public interface Job extends Identified, NamedEntity {
 	boolean isActive();
 	Job setActive(boolean active);
 
-	ObservableCollection<String> getInclusionLabels();
-	ObservableCollection<String> getExclusionLabels();
+	ObservableSet<String> getInclusionLabels();
+	ObservableSet<String> getExclusionLabels();
 
 	Instant getLastDone();
 	Job setLastDone(Instant lastDone);

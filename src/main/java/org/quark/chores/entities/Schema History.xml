@@ -1,76 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<migrations>
+<schema-history xmlns:core="QMigration-Core v0.9">
 	<migration-set author="abutler" date="24Apr2026 12:59:27 MDT" description="Initial (for QommonData) schema creation for Chore Champ">
-		<add-entity name="Job" id="id">
-			<field name="id" type="long" />
-			<field name="name" type="String" />
-			<field name="difficulty" type="int" />
-			<field name="frequency" type="Duration" />
-			<field name="minLevel" type="int" />
-			<field name="maxLevel" type="int" />
-			<field name="priority" type="int" />
-			<field name="active" type="boolean" />
-			<field name="lastDone" type="Instant" />
-			<field name="inclusionLabels" type="List{String}" />
-			<field name="exclusionLabels" type="List{String}" />
+		<add-entity entity="Job" id="id">
+			<field field="id" type="long" />
+			<field field="name" type="String" />
+			<field field="difficulty" type="int" />
+			<field field="frequency" type="Duration" />
+			<field field="minLevel" type="int" />
+			<field field="maxLevel" type="int" />
+			<field field="priority" type="int" />
+			<field field="active" type="boolean" />
+			<field field="lastDone" type="Instant" />
+			<field field="inclusionLabels" type="List{String}" />
+			<field field="exclusionLabels" type="List{String}" />
 		</add-entity>
-		<add-entity name="JobHistory" id="job,time">
-			<field name="job" type="Job" />
-			<field name="time" type="Instant" />
-			<field name="workerName" type="String" />
-			<field name="workerId" type="long" />
-			<field name="amountComplete" type="int" />
-			<field name="points" type="int" />
-			<field name="completed" type="boolean" />
+		<add-entity entity="JobHistory" id="job,time">
+			<field field="job" type="Job" />
+			<field field="time" type="Instant" />
+			<field field="workerName" type="String" />
+			<field field="workerId" type="long" />
+			<field field="amountComplete" type="int" />
+			<field field="points" type="int" />
+			<field field="completed" type="boolean" />
 		</add-entity>
-		<add-field entity="Job" name="history" type="SortedSet{JobHistory}"
-			mapped-reference="job" owns-target="true" />
-		<add-entity name="Worker" id="id">
-			<field name="id" type="long" />
-			<field name="name" type="String" />
-			<field name="ability" type="int" />
-			<field name="excessPoints" type="long" />
-			<field name="level" type="int" />
-			<field name="labels" type="List{String}" />
+		<add-field entity="Job" field="history" type="SortedSet{JobHistory}">
+			<mapped by="job" owns-target="true" />
+		</add-field>
+		<add-entity entity="Worker" id="id">
+			<field field="id" type="long" />
+			<field field="name" type="String" />
+			<field field="ability" type="int" />
+			<field field="excessPoints" type="long" />
+			<field field="level" type="int" />
+			<field field="labels" type="List{String}" />
 		</add-entity>
 
-		<add-enum name="PointChangeType">
-			<value name="Expectations" />
-			<value name="Job" />
-			<value name="Redemption" />
-			<value name="Cap" />
+		<add-enum enum="PointChangeType">
+			<value value="Expectations" />
+			<value value="Job" />
+			<value value="Redemption" />
+			<value value="Cap" />
 		</add-enum>
-		<add-entity name="PointHistory" id="worker,time,changeSourceId">
-			<field name="worker" type="Worker" />
-			<field name="time" type="Instant" />
-			<field name="changeType" type="PointChangeType" />
-			<field name="changeSourceId" type="long" />
-			<field name="changeSourceName" type="String" />
-			<field name="quantity" type="double" />
-			<field name="beforePoints" type="long" />
-			<field name="pointChange" type="int" />
+		<add-entity entity="PointHistory" id="worker,time,changeSourceId">
+			<field field="worker" type="Worker" />
+			<field field="time" type="Instant" />
+			<field field="changeType" type="PointChangeType" />
+			<field field="changeSourceId" type="long" />
+			<field field="changeSourceName" type="String" />
+			<field field="quantity" type="double" />
+			<field field="beforePoints" type="long" />
+			<field field="pointChange" type="int" />
 		</add-entity>
-		<add-field entity="Worker" name="pointHistory" type="SortedSet{PointHistory}"
-			mapped-reference="worker" owns-target="true" />
+		<add-field entity="Worker" field="pointHistory" type="SortedSet{PointHistory}">
+			<mapped by="worker" owns-target="true" />
+		</add-field>
 
-		<add-entity name="Assignment" id="date">
-			<field name="date" type="Instant" />
+		<add-entity entity="Assignment" id="date">
+			<field field="date" type="Instant" />
 		</add-entity>
-		<add-entity name="AssignedJob" id="assignment,worker,job">
-			<field name="assignment" type="Assignment" />
-			<field name="worker" type="Worker" />
-			<field name="job" type="Job" />
-			<field name="completion" type="int" />
+		<add-entity entity="AssignedJob" id="assignment,worker,job">
+			<field field="assignment" type="Assignment" />
+			<field field="worker" type="Worker" />
+			<field field="job" type="Job" />
+			<field field="completion" type="int" />
 		</add-entity>
-		<add-field entity="Assignment" name="assignments" type="SortedSet{AssignedJob}"
-			mapped-reference="assignment" owns-target="true" />
+		<add-field entity="Assignment" field="assignments" type="SortedSet{AssignedJob}">
+			<mapped by="assignment" owns-target="true" />
+		</add-field>
 
-		<add-entity name="PointResource" id="id">
-			<field name="id" type="long" />
-			<field name="name" type="String" />
-			<field name="rate" type="double" />
-			<field name="unit" type="String" />
+		<add-entity entity="PointResource" id="id">
+			<field field="id" type="long" />
+			<field field="name" type="String" />
+			<field field="rate" type="double" />
+			<field field="unit" type="String" />
 		</add-entity>
 	</migration-set>
-</migrations>
+	<migration-set author="abutler" date="30Apr2026 15:00:49" description="Making a few small changes that config entities didn't support">
+		<!-- Changing label collections to sets -->
+		<add-field entity="Job" field="inclusionLabelSet" type="Set{String}" />
+		<add-field entity="Job" field="exclusionLabelSet" type="Set{String}" />
+		<add-field entity="Worker" field="labelSet" type="Set{String}" />
+		<for-each entity="Job">
+			<copy from="inclusionLabels" to="inclusionLabelSet" />
+			<copy from="exclusionLabels" to="exclusionLabelSet" />
+		</for-each>
+		<for-each entity="Worker">
+			<copy from="labels" to="labelSet" />
+		</for-each>
+		<remove-field entity="Job" field="inclusionLabels" />
+		<remove-field entity="Job" field="exclusionLabels" />
+		<remove-field entity="Worker" field="labels" />
+		<rename-field entity="Job" field="inclusionLabelSet" rename-to="inclusionLabels" />
+		<rename-field entity="Job" field="exclusionLabelSet" rename-to="exclusionLabels" />
+		<rename-field entity="Worker" field="labelSet" rename-to="labels" />
+		
+		<rename-field entity="Job" field="difficulty" rename-to="points" />
+	</migration-set>
+</schema-history>
