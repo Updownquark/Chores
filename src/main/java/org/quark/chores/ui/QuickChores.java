@@ -9,6 +9,7 @@ import org.observe.collect.ObservableCollection;
 import org.observe.collect.ObservableSet;
 import org.observe.config.ObservableConfig;
 import org.observe.config.ObservableValueSet;
+import org.observe.config.ValueCreator;
 import org.observe.config.ValueOperationException;
 import org.qommons.Named;
 import org.qommons.Transaction;
@@ -134,7 +135,6 @@ public class QuickChores {
 			for (AssignedJob job : currentAssignment.getAssignments().getValues()) {
 				excessPoints.compute(job.getWorker(), (worker, excess) -> {
 					worker.getPointHistory().create()//
-					.with(PointHistory::getWorker, worker)//
 					.with(PointHistory::getTime, now)//
 					.with(PointHistory::getChangeType, PointChangeType.Job)//
 					.with(PointHistory::getQuantity, 1.0)//
@@ -145,16 +145,16 @@ public class QuickChores {
 					.create();
 					return excess + job.getCompletion();
 				});
-				if (job.getCompletion() >= job.getJob().getPoints()) {
-					job.getJob().setLastDone(currentAssignment.getDate());
-					job.getJob().getHistory().create()//
-					.with(JobHistory::getJob, job.getJob())//
-					.with(JobHistory::getWorkerId, job.getWorker().getId())//
-					.with(JobHistory::getWorkerName, job.getWorker().getName())//
-					.with(JobHistory::getAmountComplete, job.getCompletion())//
-					.with(JobHistory::getPoints, job.getJob().getPoints())//
-					.with(JobHistory::getTime, assignmentTime)//
-					.create();
+				job.getJob().setLastDone(currentAssignment.getDate());
+				ValueCreator<JobHistory, JobHistory> jobHistory = job.getJob().getHistory().create()//
+						.with(JobHistory::getWorkerId, job.getWorker().getId())//
+						.with(JobHistory::getWorkerName, job.getWorker().getName())//
+						.with(JobHistory::getAmountComplete, job.getCompletion())//
+						.with(JobHistory::getPoints, job.getJob().getPoints())//
+						.with(JobHistory::getTime, assignmentTime)//
+						.with(JobHistory::isCompleted, job.getCompletion() >= job.getJob().getPoints());
+				if (jobHistory.canCreate() == null) {
+					jobHistory.create();
 				}
 			}
 			for (Map.Entry<Worker, Long> entry : excessPoints.entrySet()) {
@@ -211,7 +211,6 @@ public class QuickChores {
 
 	public void usePoints(Worker worker, PointResource resource, int points) {
 		worker.getPointHistory().create()//
-		.with(PointHistory::getWorker, worker)//
 		.with(PointHistory::getTime, Instant.now())//
 		.with(PointHistory::getChangeType, PointChangeType.Redemption)//
 		.with(PointHistory::getQuantity, points * resource.getRate())//

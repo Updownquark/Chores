@@ -15,6 +15,8 @@
 				<value name="windowY" type="int" config-path="y" />
 				<value name="windowW" type="int" config-path="width" default="1000" />
 				<value name="windowH" type="int" config-path="height" default="800"/>
+				
+				<no-backup />
 			</config>
 			<entity-data-set name="data" config-name="Chores" migrations="`/org/quark/chores/entities/Schema History.xml`">
 				<sorted-set name="jobs" type="Job" />
@@ -56,9 +58,6 @@
 				<transform name="currentJobAssignments" source="currentAssignments">
 					<group-by source-as="job" key="job.getJob()" />
 				</transform>
-				<transform name="currentWorkerAssignments" source="currentAssignments">
-					<group-by source-as="job" key="job.getWorker()" />
-				</transform>
 				<transform name="currentWorkerJobAssignments" source="currentAssignments">
 					<group-by source-as="job" key="new BiTuple&lt;>(job.getWorker(), job.getJob())" />
 					<map-transform type="value">
@@ -74,7 +73,7 @@
 					<filter source-as="assn" test="assn.getJob()==selectedJob" />
 					<sort sort-value-as="assn">
 						<sort-by ascending="false">assn.getAssignment().getDate()</sort-by>
-						<sort-by>data.assignments.indexOf(assn.getWorker())</sort-by>
+						<sort-by>workers.indexOf(assn.getWorker())</sort-by>
 					</sort>
 				</transform>
 				<transform name="allWorkerAssignments" source="data.assignments">

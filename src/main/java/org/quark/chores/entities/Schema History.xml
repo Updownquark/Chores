@@ -97,4 +97,23 @@
 		
 		<rename-field entity="Job" field="difficulty" rename-to="points" />
 	</migration-set>
+	<migration-set author="abutler" date="03May2026 18:16:51 MDT" description="JobHistory needs both job and worker in its ID">
+		<add-entity entity="JobHistory2" id="job,time,workerId">
+			<field field="job" type="Job" />
+			<field field="time" type="Instant" />
+			<field field="workerName" type="String" />
+			<field field="workerId" type="long" />
+			<field field="amountComplete" type="int" />
+			<field field="points" type="int" />
+			<field field="completed" type="boolean" />
+		</add-entity>
+		<remove-field entity="Job" field="history" />
+		<remove-entity entity="JobHistory">
+			<move-to target="JobHistory2" />
+		</remove-entity>
+		<rename-entity entity="JobHistory2" rename-to="JobHistory" />
+		<add-field entity="Job" field="history" type="SortedSet{JobHistory}">
+			<mapped by="job" owns-target="true" />
+		</add-field>
+	</migration-set>
 </schema-history>
