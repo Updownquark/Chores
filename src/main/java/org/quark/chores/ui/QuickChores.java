@@ -57,7 +57,7 @@ public class QuickChores {
 
 	public Job createJob() throws IllegalArgumentException, ValueOperationException {
 		return jobs.create()//
-				.with(Job::getName, "New Job")//
+				.with(Job::getName, "A New Job")//
 				.with(Job::isActive, true)//
 				.with(Job::getPriority, 5)//
 				.with(Job::getPoints, 1)//
@@ -87,7 +87,7 @@ public class QuickChores {
 	}
 
 	public void replace(ObservableCollection<String> labels, ObservableCollection<String> newLabels) {
-		try (Transaction t = labels.lock(true, null)) {
+		try (Transaction t = labels.lockWrite(false, null)) {
 			labels.clear();
 			labels.addAll(newLabels);
 		}

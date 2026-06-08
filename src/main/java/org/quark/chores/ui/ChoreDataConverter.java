@@ -55,7 +55,7 @@ public class ChoreDataConverter {
 		SyncValueSet<Assignment> qdAssignments = qData.observeEntities(Assignment.class);
 		SyncValueSet<PointResource> qdPointResources = qData.observeEntities(PointResource.class);
 
-		try (Transaction t = qData.lock(true, null)) {
+		try (Transaction t = qData.lockWrite(false, null)) {
 			// Note: the copy() method in the entity creator skips ID fields,
 			// but we want to preserve these because the history entities use them explicitly
 			for (Job configJob : configJobs.getValues()) {

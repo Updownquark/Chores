@@ -40,6 +40,9 @@
 						<sort-by>job.getName()</sort-by>
 					</sort>
 				</transform>
+				<transform name="activeJobs" source="jobs">
+					<filter source-as="job" test="job.isActive() ? null : `Not Active`" />
+				</transform>
 				<transform name="workers" source="data.workers">
 					<sort sort-value-as="worker" ascending="false">
 						<sort-by>worker.getAbility()</sort-by>
@@ -107,7 +110,7 @@
 		
 		<box tab-id="`assignment`" tab-name="`Assignments`"
 			layout="inline-layout" orientation="vertical" main-align="justify" cross-align="justify">
-			<super-table rows="app.jobs" active-value-name="job" selection="app.selectedJob">
+			<super-table rows="app.activeJobs" active-value-name="job" selection="app.selectedJob">
 				<column name="`Job`" value="job.getName()" column-value-name="name">
 					<label value="name" tooltip="`&lt;html>`
 						+(job.getLastDone()==null ? `Never Done` : (`Last done `+app.timeFormat.format(job.getLastDone())))">
@@ -187,7 +190,7 @@
 				</model>
 				<label>Freelance:</label>
 				<text-field value="points" columns="4" />
-				<combo value="app.selectedJob" values="app.jobs" />
+				<combo value="app.selectedJob" values="app.activeJobs" />
 				<button action="doWork">`Report Work`</button>
 			</box>
 			<tabs visible="app.selectedWorker!=null">
@@ -325,6 +328,12 @@
 				<label value="labels" format="QuickChores.LABELS_FORMAT" />
 				<column-edit column-edit-value-name="newLabels" commit="app.ui.replace(job.getExclusionLabels(), newLabels)">
 					<text-field format="QuickChores.LABELS_FORMAT" />
+				</column-edit>
+			</column>
+			<column name="`Active`" value="job.isActive()" column-value-name="active">
+				<check-box value="active" />
+				<column-edit column-edit-value-name="newActive" commit="job.setActive(newActive)">
+					<check-box />
 				</column-edit>
 			</column>
 			<multi-value-action icon="`/icons/add.png$16x16`" allow-for-empty="true">create</multi-value-action>
