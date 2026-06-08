@@ -292,7 +292,7 @@
 					<text-field />
 				</column-edit>
 			</column>
-			<column name="`Points`" value="job.getPoints()">
+			<column name="`Points`" value="job.getPoints()" pref-width="65">
 				<column-edit column-edit-value-name="newPoints" commit="job.setPoints(newPoints)">
 					<text-field />
 				</column-edit>
