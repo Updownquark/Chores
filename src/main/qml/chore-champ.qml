@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<quick xmlns:quick="Quick-X v0.1" xmlns:config="Expresso-Config v0.1" with-extension="window"
+<quick xmlns:quick="Quick-X v0.1" xmlns:config="Expresso-Config v0.1" xmlns:logging="Expresso-Logging v0.1" with-extension="window"
 	title="`Chore Champ`" window-icon="`/icons/broom.jpg`" close-action="exit"
-	x="config.windowX" y="config.windowY" width="config.windowW" height="config.windowH">
+	x="config.windowX" y="config.windowY" width="config.windowW" height="config.windowH"
+	log-to="all" shutdown-as="shutdown">
 	<head>
 		<imports>
 			<import>org.quark.chores.ui.*</import>
@@ -98,6 +99,18 @@
 				<hook name="resetConfirmed" on="confirmText">confirmText!=null ? confirmed=false : null</hook>
 			</model>
 		</models>
+		<logging>
+			<model>
+				<log-event name="startup0" on="onModelLoad" source="`Application`" message="`Startup`" />
+				<log-event name="shutdown0" on="shutdown" source="`Application`" message="`Shutdown`" />
+			</model>
+			<rolling-log-file file-type="csv-log" name="csv"
+				file-path="`Chores.`+QuickChores.LOG_FILE_TIME_FORMAT.format(time)+`.log.csv`"
+				max-file-size="1024*1024" max-total-duration="`1mo`">
+				<rolling-log-archive archive-type="zip-archive" aggregate-file="ChoresLogArchive.zip" min-file-age="`2d`" />
+			</rolling-log-file>
+			<log-capture name="all" logger="csv" />
+		</logging>
 		<style-sheet>
 			<!--<import-style-sheet name="searcher" ref="quick-testing.qss" />-->
 		</style-sheet>
