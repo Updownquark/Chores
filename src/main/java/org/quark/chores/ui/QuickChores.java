@@ -176,7 +176,6 @@ public class QuickChores {
 		Instant now = Instant.now();
 		long oldPoints = worker.getExcessPoints();
 		job.getHistory().create()//
-		.with(JobHistory::getJob, job)//
 		.with(JobHistory::getWorkerId, worker.getId())//
 		.with(JobHistory::getWorkerName, worker.getName())//
 		.with(JobHistory::getAmountComplete, points)//
@@ -184,7 +183,6 @@ public class QuickChores {
 		.with(JobHistory::getTime, now)//
 		.create();
 		worker.getPointHistory().create()//
-		.with(PointHistory::getWorker, worker)//
 		.with(PointHistory::getChangeType, PointChangeType.Job)//
 		.with(PointHistory::getChangeSourceId, job.getId())//
 		.with(PointHistory::getChangeSourceName, job.getName())//
